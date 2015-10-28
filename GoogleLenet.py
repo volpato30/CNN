@@ -100,10 +100,18 @@ def build_cnn(input_var=None):
     # Another convolution with 32 5x5 kernels, and another 2x2 pooling:
     network = inception_module(
             network, num_1x1=64, reduce_3x3=96, num_3x3=128, reduce_5x5=16, num_5x5=32,)
+    
+    network = inception_module(
+            network, num_1x1=128, reduce_3x3=128, num_3x3=192, reduce_5x5=32, num_5x5=96,)
+    
     network = lasagne.layers.MaxPool2DLayer(network, pool_size=(2, 2))
 
     network = inception_module(
-            network, num_1x1=128, reduce_3x3=128, num_3x3=192, reduce_5x5=32, num_5x5=96,)
+            network, num_1x1=192, reduce_3x3=96, num_3x3=208, reduce_5x5=16, num_5x5=48,)
+    
+    network = inception_module(
+            network, num_1x1=160, reduce_3x3=112, num_3x3=224, reduce_5x5=24, num_5x5=64,)
+
     network = lasagne.layers.MaxPool2DLayer(network, pool_size=(2, 2))
 
     # A fully-connected layer of 256 units with 50% dropout on its inputs:
@@ -140,7 +148,7 @@ def iterate_minibatches(inputs, targets, batchsize, shuffle=False):
 # more functions to better separate the code, but it wouldn't make it any
 # easier to read.
 
-def main(num_epochs=5):
+def main(num_epochs=100):
     # Load the dataset
     print("Loading data...")
     datasets = load_data()
@@ -150,7 +158,7 @@ def main(num_epochs=5):
     # Prepare Theano variables for inputs and targets
     input_var = T.tensor4('inputs')
     target_var = T.ivector('targets')
-
+    learnrate=0.01
     # Create neural network model (depending on first command line parameter)
     print("Building model and compiling functions...")
 
@@ -167,7 +175,7 @@ def main(num_epochs=5):
     # Descent (SGD) with Nesterov momentum, but Lasagne offers plenty more.
     params = lasagne.layers.get_all_params(network, trainable=True)
     updates = lasagne.updates.nesterov_momentum(
-            loss, params, learning_rate=0.01, momentum=0.9)
+            loss, params, learning_rate=learnrate, momentum=0.9)
 
     # Create a loss expression for validation/testing. The crucial difference
     # here is that we do a deterministic forward pass through the network,
@@ -195,6 +203,10 @@ def main(num_epochs=5):
         train_err = 0
         train_batches = 0
         start_time = time.time()
+        if epoch % 8 == 7:
+            learnrate*=0.96
+        updates = lasagne.updates.nesterov_momentum(
+            loss, params, learning_rate=learnrate, momentum=0.9)
         for batch in iterate_minibatches(X_train, y_train, 20, shuffle=False):
             inputs, targets = batch
             train_err += train_fn(inputs, targets)
@@ -219,71 +231,6 @@ def main(num_epochs=5):
         print("  validation accuracy:\t\t{:.2f} %".format(
             val_acc / val_batches * 100))
 
-    updates = lasagne.updates.nesterov_momentum(
-            loss, params, learning_rate=0.005, momentum=0.9)
-    
-    for epoch in range(num_epochs):
-        # In each epoch, we do a full pass over the training data:
-        train_err = 0
-        train_batches = 0
-        start_time = time.time()
-        for batch in iterate_minibatches(X_train, y_train, 20, shuffle=False):
-            inputs, targets = batch
-            train_err += train_fn(inputs, targets)
-            train_batches += 1
-
-        # And a full pass over the validation data:
-        val_err = 0
-        val_acc = 0
-        val_batches = 0
-        for batch in iterate_minibatches(X_val, y_val, 20, shuffle=False):
-            inputs, targets = batch
-            err, acc = val_fn(inputs, targets)
-            val_err += err
-            val_acc += acc
-            val_batches += 1
-
-        # Then we print the results for this epoch:
-        print("Epoch {} of {} took {:.3f}s".format(
-            epoch + 1, num_epochs, time.time() - start_time))
-        print("  training loss:\t\t{:.6f}".format(train_err / train_batches))
-        print("  validation loss:\t\t{:.6f}".format(val_err / val_batches))
-        print("  validation accuracy:\t\t{:.2f} %".format(
-            val_acc / val_batches * 100))
-
-    updates = lasagne.updates.nesterov_momentum(
-            loss, params, learning_rate=0.001, momentum=0.9)
-    
-    for epoch in range(num_epochs):
-        # In each epoch, we do a full pass over the training data:
-        train_err = 0
-        train_batches = 0
-        start_time = time.time()
-        for batch in iterate_minibatches(X_train, y_train, 20, shuffle=False):
-            inputs, targets = batch
-            train_err += train_fn(inputs, targets)
-            train_batches += 1
-
-        # And a full pass over the validation data:
-        val_err = 0
-        val_acc = 0
-        val_batches = 0
-        for batch in iterate_minibatches(X_val, y_val, 20, shuffle=False):
-            inputs, targets = batch
-            err, acc = val_fn(inputs, targets)
-            val_err += err
-            val_acc += acc
-            val_batches += 1
-
-        # Then we print the results for this epoch:
-        print("Epoch {} of {} took {:.3f}s".format(
-            epoch + 1, num_epochs, time.time() - start_time))
-        print("  training loss:\t\t{:.6f}".format(train_err / train_batches))
-        print("  validation loss:\t\t{:.6f}".format(val_err / val_batches))
-        print("  validation accuracy:\t\t{:.2f} %".format(
-            val_acc / val_batches * 100))
-
-    # After training, we compute and print the test error:
     test_err = 0
     test_acc = 0
     test_batches = 0
@@ -299,7 +246,7 @@ def main(num_epochs=5):
         test_acc / test_batches * 100))
 
     # Optionally, you could now dump the network weights to a file like this:
-    np.savez('model.npz', *lasagne.layers.get_all_param_values(network))
+    np.savez('model2.npz', *lasagne.layers.get_all_param_values(network))
     #
     # And load them again later on like this:
     # with np.load('model.npz') as f:
@@ -308,4 +255,4 @@ def main(num_epochs=5):
 
 
 if __name__ == '__main__':
-        main(100)
+        main(500)
