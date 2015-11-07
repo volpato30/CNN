@@ -1,16 +1,5 @@
 #!/usr/bin/env python
-
-"""
-Usage example employing Lasagne for digit recognition using the MNIST dataset.
-
-This example is deliberately structured as a long flat file, focusing on how
-to use Lasagne, instead of focusing on writing maximally modular and reusable
-code. It is used as the foundation for the introductory Lasagne tutorial:
-http://lasagne.readthedocs.org/en/latest/user/tutorial.html
-
-More in-depth examples and reproductions of paper results are maintained in
-a separate repository: https://github.com/Lasagne/Recipes
-"""
+#This script draws the output of each layer from the trained Googlenet.
 
 from __future__ import print_function
 
