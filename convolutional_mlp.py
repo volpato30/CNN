@@ -1,26 +1,3 @@
-"""This tutorial introduces the LeNet5 neural network architecture
-using Theano.  LeNet5 is a convolutional neural network, good for
-classifying images. This tutorial shows how to build the architecture,
-and comes with all the hyper-parameters you need to reproduce the
-paper's MNIST results.
-
-
-This implementation simplifies the model in the following ways:
-
- - LeNetConvPool doesn't implement location-specific gain and bias parameters
- - LeNetConvPool doesn't implement pooling by average, it implements pooling
-   by max.
- - Digit classification is implemented with a logistic regression rather than
-   an RBF network
- - LeNet5 was not fully-connected convolutions at second layer
-
-References:
- - Y. LeCun, L. Bottou, Y. Bengio and P. Haffner:
-   Gradient-Based Learning Applied to Document
-   Recognition, Proceedings of the IEEE, 86(11):2278-2324, November 1998.
-   http://yann.lecun.com/exdb/publis/pdf/lecun-98.pdf
-
-"""
 import os
 import sys
 import timeit
@@ -115,8 +92,7 @@ class LeNetConvPoolLayer(object):
 
 def evaluate_lenet5(learning_rate=0.1, n_epochs=200,
                     nkerns=[20, 50], batch_size=20):
-    """ Demonstrates lenet on MNIST dataset
-
+    """ 
     :type learning_rate: float
     :param learning_rate: learning rate used (factor for the stochastic
                           gradient)
@@ -158,15 +134,9 @@ def evaluate_lenet5(learning_rate=0.1, n_epochs=200,
     ######################
     print('... building the model')
 
-    # Reshape matrix of rasterized images of shape (batch_size, 28 * 28)
-    # to a 4D tensor, compatible with our LeNetConvPoolLayer
-    # (28, 28) is the size of MNIST images.
     layer0_input = x.reshape((batch_size, 1, 64, 64))
 
-    # Construct the first convolutional pooling layer:
-    # filtering reduces the image size to (28-5+1 , 28-5+1) = (24, 24)
-    # maxpooling reduces this further to (24/2, 24/2) = (12, 12)
-    # 4D output tensor is thus of shape (batch_size, nkerns[0], 12, 12)
+    
     layer0 = LeNetConvPoolLayer(
         rng,
         input=layer0_input,
@@ -175,10 +145,6 @@ def evaluate_lenet5(learning_rate=0.1, n_epochs=200,
         poolsize=(2, 2)
     )
 
-    # Construct the second convolutional pooling layer
-    # filtering reduces the image size to (12-5+1, 12-5+1) = (8, 8)
-    # maxpooling reduces this further to (8/2, 8/2) = (4, 4)
-    # 4D output tensor is thus of shape (batch_size, nkerns[1], 4, 4)
     layer1 = LeNetConvPoolLayer(
         rng,
         input=layer0.output,
@@ -187,10 +153,6 @@ def evaluate_lenet5(learning_rate=0.1, n_epochs=200,
         poolsize=(2, 2)
     )
 
-    # the HiddenLayer being fully-connected, it operates on 2D matrices of
-    # shape (batch_size, num_pixels) (i.e matrix of rasterized images).
-    # This will generate a matrix of shape (batch_size, nkerns[1] * 4 * 4),
-    # or (500, 50 * 4 * 4) = (500, 800) with the default values.
     layer2_input = layer1.output.flatten(2)
 
     # construct a fully-connected sigmoidal layer
