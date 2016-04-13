@@ -135,8 +135,8 @@ def main(num_epochs=200):
         train_err = 0
         train_batches = 0
         start_time = time.time()
-        if epoch % 50 == 49:
-            learnrate*=0.8
+        if epoch % 8 == 7:
+            learnrate*=0.96
             #updates = lasagne.updates.adadelta(loss, params,learning_rate=learnrate)
             updates = lasagne.updates.nesterov_momentum(
                 loss, params, learning_rate=learnrate, momentum=0.9)
