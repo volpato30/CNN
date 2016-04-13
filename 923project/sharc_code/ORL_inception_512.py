@@ -1,6 +1,5 @@
 #!/opt/sharcnet/python/2.7.5/gcc/bin/python
 
-
 from __future__ import print_function
 import sys
 import os
@@ -16,17 +15,9 @@ from lasagne.regularization import regularize_layer_params, l2, l1
 
 from lasagne.layers import LocalResponseNormalization2DLayer as LRNLayer
 from lasagne.layers import GlobalPoolLayer
-from lasagne.layers import InputLayer
-from lasagne.layers import DenseLayer
-from lasagne.layers import NonlinearityLayer
-from lasagne.layers import DropoutLayer
-from lasagne.layers import Pool2DLayer as PoolLayer
-from lasagne.layers import Conv2DLayer as ConvLayer
-from lasagne.nonlinearities import softmax
 
 batch_size = 40
 Conv2DLayer = lasagne.layers.Conv2DLayer
-bias = 0
 
 def load_data():
     arr = np.arange(10)
@@ -45,30 +36,87 @@ def load_data():
     rval = [train_set, test_set]
     return rval
 
+
+
+def inception_module(l_in,pool_filters, num_1x1, reduce_3x3, num_3x3, reduce_5x5, num_5x5, bias=0):
+    """
+    inception module (without the 3x3s1 pooling and projection because that's difficult in Theano right now)
+    """
+    out_layers = []
+
+    if pool_filters > 0:
+        l_pool = lasagne.layers.MaxPool2DLayer(l_in, pool_size=3, stride=1, pad=1)
+        l_pool_reduced = lasagne.layers.NINLayer(l_pool, num_units=pool_filters,nonlinearity = lasagne.nonlinearities.rectify, W=lasagne.init.HeNormal(gain='relu'), b=lasagne.init.Constant(bias))
+        out_layers.append(l_pool_reduced)
+
+    # 1x1
+    if num_1x1 > 0:
+        l_1x1 = lasagne.layers.NINLayer(l_in, num_units=num_1x1,nonlinearity = lasagne.nonlinearities.rectify, W=lasagne.init.HeNormal(gain='relu'), b=lasagne.init.Constant(bias))
+        out_layers.append(l_1x1)
+
+    # 3x3
+    if num_3x3 > 0:
+        if reduce_3x3 > 0:
+            l_reduce_3x3 = lasagne.layers.NINLayer(l_in, num_units=reduce_3x3,nonlinearity = lasagne.nonlinearities.rectify, W=lasagne.init.HeNormal(gain='relu'), b=lasagne.init.Constant(bias))
+        else:
+            l_reduce_3x3 = l_in
+        l_3x3 = Conv2DLayer(l_reduce_3x3, num_filters=num_3x3, filter_size=(3, 3), pad="same",nonlinearity = lasagne.nonlinearities.rectify, W=lasagne.init.HeNormal(gain='relu'), b=lasagne.init.Constant(bias))
+        out_layers.append(l_3x3)
+
+    # 5x5
+    if num_5x5 > 0:
+        if reduce_5x5 > 0:
+            l_reduce_5x5 = lasagne.layers.NINLayer(l_in, num_units=reduce_5x5, nonlinearity = lasagne.nonlinearities.rectify, W=lasagne.init.HeNormal(gain='relu'), b=lasagne.init.Constant(bias))
+        else:
+            l_reduce_5x5 = l_in
+        l_5x5 = Conv2DLayer(l_reduce_5x5, num_filters=num_5x5, filter_size=(5, 5), pad="same", nonlinearity = lasagne.nonlinearities.rectify, W=lasagne.init.HeNormal(gain='relu'), b=lasagne.init.Constant(bias))
+        out_layers.append(l_5x5)
+
+    # stack
+    l_out = lasagne.layers.concat(out_layers)
+    return l_out
+
+
+
 def build_cnn(input_var=None):
-    net = InputLayer(shape = (None, 1, 64, 64),input_var=input_var)
-    net = ConvLayer(
-        net, 64, 3, pad=1, flip_filters=False)
-    net = ConvLayer(
-        net, 64, 3, pad=1, flip_filters=False)
-    net = PoolLayer(net, 2)
-    net = ConvLayer(
-        net, 128, 3, pad=1, flip_filters=False)
-    net = ConvLayer(
-        net, 128, 3, pad=1, flip_filters=False)
-    net = PoolLayer(net, 2)
-    net = ConvLayer(
-        net, 256, 3, pad=1, flip_filters=False)
-    net = ConvLayer(
-        net, 256, 3, pad=1, flip_filters=False)
-    net = ConvLayer(
-        net, 256, 3, pad=1, flip_filters=False)
-    net = PoolLayer(net, 2)
-    net = DenseLayer(net, num_units=256)
-    net = DenseLayer(
-        net, num_units=40, nonlinearity=None)
-    net = NonlinearityLayer(net, softmax)
-    return net
+
+    network = lasagne.layers.InputLayer(shape=(batch_size, 1, 64, 64),
+                                        input_var=input_var)
+
+    network = lasagne.layers.NINLayer(network, num_units=32,nonlinearity = lasagne.nonlinearities.rectify, W=lasagne.init.HeNormal(gain='relu'), b=lasagne.init.Constant(0))
+
+    network = lasagne.layers.MaxPool2DLayer(network, pool_size=3, stride=2)
+
+    network = inception_module(
+            network,pool_filters=32, num_1x1=64, reduce_3x3=64, num_3x3=64, reduce_5x5=16, num_5x5=32)
+
+    network = inception_module(
+            network,pool_filters=32, num_1x1=128, reduce_3x3=96, num_3x3=96, reduce_5x5=32, num_5x5=32)
+
+    network = lasagne.layers.MaxPool2DLayer(network, pool_size=3, stride=2)
+
+    network = inception_module(
+            network,pool_filters=32, num_1x1=192, reduce_3x3=96, num_3x3=208, reduce_5x5=16, num_5x5=48)
+
+    network = inception_module(
+            network,pool_filters=32, num_1x1=160, reduce_3x3=112, num_3x3=224, reduce_5x5=24, num_5x5=64)
+
+    network = lasagne.layers.MaxPool2DLayer(network, pool_size=3, stride=2)
+
+    network = lasagne.layers.DenseLayer(
+        lasagne.layers.dropout(network, p=.5),
+        num_units=512,
+        nonlinearity=lasagne.nonlinearities.rectify)
+
+
+    network = lasagne.layers.DenseLayer(
+            lasagne.layers.dropout(network, p=.5),
+            num_units=40,
+            nonlinearity=lasagne.nonlinearities.softmax)
+
+    return network
+
+
 
 def iterate_minibatches(inputs, targets, batchsize, shuffle=False):
     assert len(inputs) == len(targets)
@@ -94,7 +142,7 @@ def main(num_epochs=200):
     # Prepare Theano variables for inputs and targets
     input_var = T.tensor4('inputs')
     target_var = T.ivector('targets')
-    learnrate=0.01
+    learnrate=0.02
     # Create neural network model (depending on first command line parameter)
     print("Building model and compiling functions...")
 
@@ -104,18 +152,15 @@ def main(num_epochs=200):
     l2_penalty = regularize_layer_params(network, l2)
     prediction = lasagne.layers.get_output(network)
     loss = lasagne.objectives.categorical_crossentropy(prediction, target_var)
-    loss = loss.mean() + 0.05*l2_penalty
+    loss = loss.mean()+0.1*l2_penalty
     # We could add some weight decay as well here, see lasagne.regularization.
 
-    # Create update expressions for training, i.e., how to modify the
-    # parameters at each training step. Here, we'll use Stochastic Gradient
-    # Descent (SGD) with Nesterov momentum, but Lasagne offers plenty more.
     params = lasagne.layers.get_all_params(network, trainable=True)
 
-    #updates = lasagne.updates.adadelta(loss, params)
+    #optimizer:
+    #updates = lasagne.updates.adadelta(loss, params,learning_rate=learnrate)
     updates = lasagne.updates.nesterov_momentum(
-            loss, params, learning_rate=learnrate, momentum=0.9)
-
+        loss, params, learning_rate=learnrate, momentum=0.9)
 
     # Create a loss expression for validation/testing. The crucial difference
     # here is that we do a deterministic forward pass through the network,
@@ -145,8 +190,13 @@ def main(num_epochs=200):
         train_batches = 0
         start_time = time.time()
         if epoch % 8 == 7:
-            learnrate*=0.96
+            learnrate*= 0.96
             #updates = lasagne.updates.adadelta(loss, params,learning_rate=learnrate)
+            updates = lasagne.updates.nesterov_momentum(
+                loss, params, learning_rate=learnrate, momentum=0.9)
+            train_fn = theano.function([input_var, target_var], loss, updates=updates)
+        if epoch % 300 == 299:
+            learnrate*= 10
             updates = lasagne.updates.nesterov_momentum(
                 loss, params, learning_rate=learnrate, momentum=0.9)
             train_fn = theano.function([input_var, target_var], loss, updates=updates)
@@ -178,7 +228,7 @@ def main(num_epochs=200):
 
         if test_acc > best_acc:
             best_acc = test_acc
-            np.savez('ORL_VGG.npz', *lasagne.layers.get_all_param_values(network))
+            np.savez('ORL_inception.npz', *lasagne.layers.get_all_param_values(network))
     return best_acc
 
     # Optionally, you could now dump the network weights to a file like this:
@@ -189,4 +239,5 @@ def main(num_epochs=200):
     # lasagne.layers.set_all_param_values(network, param_values)
 
 final_results = main(500)
+
 print("final accuracy is:\t\t{:.6f}".format(final_results * 100))
