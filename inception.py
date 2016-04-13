@@ -26,12 +26,12 @@ class AveragePoolLayer(object):
 class ConvLayer(object):
 
     def __init__(self, rng, input, filter_shape, image_shape):
-       
+
         assert image_shape[1] == filter_shape[1]
         self.input = input
 
         fan_in = numpy.prod(filter_shape[1:])
-        
+
         fan_out = (filter_shape[0] * numpy.prod(filter_shape[2:]))
         # initialize weights with random weights
         W_bound = numpy.sqrt(6. / (fan_in + fan_out))
@@ -66,7 +66,7 @@ class LeNetConvPoolLayer(object):
     """Pool Layer of a convolutional network """
 
     def __init__(self, rng, input, filter_shape, image_shape, poolsize=(2, 2)):
-       
+
         assert image_shape[1] == filter_shape[1]
         self.input = input
 
@@ -138,7 +138,7 @@ def evaluate_lenet5(learning_rate=0.12, n_epochs=200,
     :param nkerns: number of kernels on each layer
     """
 
-    rng = numpy.random.RandomState(23455)
+    rng = numpy.random.RandomState()
 
     datasets = load_data()
 
@@ -208,11 +208,6 @@ def evaluate_lenet5(learning_rate=0.12, n_epochs=200,
         filter_shape=(40, nkerns[4], 3, 3),
         poolsize=(2, 2)
     )
-
-
-
-
-
     # construct a fully-connected sigmoidal layer
     layer2 = AveragePoolLayer(
         input=layer1d.output,
@@ -304,8 +299,6 @@ def evaluate_lenet5(learning_rate=0.12, n_epochs=200,
 
             if iter % 100 == 0:
                 learning_rate*=0.8
-
-
             if iter % 100 == 0:
                 print('training @ iter = ', iter)
             cost_ij = train_model(minibatch_index)
@@ -342,8 +335,9 @@ def evaluate_lenet5(learning_rate=0.12, n_epochs=200,
                            'best model %f %%') %
                           (epoch, minibatch_index + 1, n_train_batches,
                            test_score * 100.)))
-                    with open('inception.pkl', 'wb') as f:
-                        pickle.dump([layer0,layer0b,layer1,layer1b,layer2,layer3], f)
+                    best_score = (this_validation_loss + test_score)/2
+                    #with open('inception.pkl', 'wb') as f:
+                        #pickle.dump([layer0,layer0b,layer1,layer1b,layer2,layer3], f)
 
             if patience <= iter:
                 done_looping = True
@@ -357,10 +351,10 @@ def evaluate_lenet5(learning_rate=0.12, n_epochs=200,
     print(('The code for file ' +
                           os.path.split(__file__)[1] +
                           ' ran for %.2fm' % ((end_time - start_time) / 60.)), file=sys.stderr)
+    return best_score
 
 if __name__ == '__main__':
-    evaluate_lenet5(learning_rate=0.2 ,n_epochs=5)
-
-
-def experiment(state, channel):
-    evaluate_lenet5(state.learning_rate, dataset=state.dataset)
+    final_result = numpy.zeros(30)
+    for i in numpy.arange(30):
+        final_result[i] = evaluate_lenet5(learning_rate=0.2 ,n_epochs=10)
+    print("average acc is %f %%" % final_result.mean())

@@ -16,7 +16,7 @@ import lasagne
 from lasagne.regularization import regularize_layer_params, l2, l1
 
 def load_data():
-    
+
     face=sklearn.datasets.fetch_olivetti_faces(shuffle=True)
     train_set=(face.data[0:200,].reshape((200,1,64,64)),face.target[0:200,].astype(np.int32))
     valid_set=(face.data[200:300,].reshape((100,1,64,64)),face.target[200:300,].astype(np.int32))
@@ -43,7 +43,7 @@ def inception_module(l_in, num_1x1, reduce_3x3, num_3x3, reduce_5x5, num_5x5, ga
     if num_1x1 > 0:
         l_1x1 = lasagne.layers.NINLayer(l_in, num_units=num_1x1, W=lasagne.init.Orthogonal(gain), b=lasagne.init.Constant(bias))
         out_layers.append(l_1x1)
-    
+
     # 3x3
     if num_3x3 > 0:
         if reduce_3x3 > 0:
@@ -52,7 +52,7 @@ def inception_module(l_in, num_1x1, reduce_3x3, num_3x3, reduce_5x5, num_5x5, ga
             l_reduce_3x3 = l_in
         l_3x3 = Conv2DLayer(l_reduce_3x3, num_filters=num_3x3, filter_size=(3, 3), pad="same", W=lasagne.init.Orthogonal(gain), b=lasagne.init.Constant(bias))
         out_layers.append(l_3x3)
-    
+
     # 5x5
     if num_5x5 > 0:
         if reduce_5x5 > 0:
@@ -61,32 +61,32 @@ def inception_module(l_in, num_1x1, reduce_3x3, num_3x3, reduce_5x5, num_5x5, ga
             l_reduce_5x5 = l_in
         l_5x5 = Conv2DLayer(l_reduce_5x5, num_filters=num_5x5, filter_size=(5, 5), pad="same", W=lasagne.init.Orthogonal(gain), b=lasagne.init.Constant(bias))
         out_layers.append(l_5x5)
-    
+
     # stack
     l_out = lasagne.layers.concat(out_layers)
     return l_out
 
 
 def build_cnn(input_var=None):
-    
+
     network = lasagne.layers.InputLayer(shape=(20, 1, 64, 64),
                                         input_var=input_var)
-   
+
     network = lasagne.layers.NINLayer(network, num_units=32, W=lasagne.init.Orthogonal(1.0), b=lasagne.init.Constant(0.1))
-    
+
     network = lasagne.layers.MaxPool2DLayer(network, pool_size=(2, 2))
-    
+
     network = inception_module(
             network, num_1x1=64, reduce_3x3=96, num_3x3=128, reduce_5x5=16, num_5x5=32,)
-    
+
     network = inception_module(
             network, num_1x1=128, reduce_3x3=128, num_3x3=192, reduce_5x5=32, num_5x5=96,)
-    
+
     network = lasagne.layers.MaxPool2DLayer(network, pool_size=(2, 2))
 
     network = inception_module(
             network, num_1x1=192, reduce_3x3=96, num_3x3=208, reduce_5x5=16, num_5x5=48,)
-    
+
     network = inception_module(
             network, num_1x1=160, reduce_3x3=112, num_3x3=224, reduce_5x5=24, num_5x5=64,)
 
@@ -175,10 +175,6 @@ def main(num_epochs=100):
         train_err = 0
         train_batches = 0
         start_time = time.time()
-        if epoch % 8 == 7:
-            learnrate*=0.96
-        updates = lasagne.updates.nesterov_momentum(
-            loss, params, learning_rate=learnrate, momentum=0.9)
         for batch in iterate_minibatches(X_train, y_train, 20, shuffle=False):
             inputs, targets = batch
             train_err += train_fn(inputs, targets)
