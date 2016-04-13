@@ -20,10 +20,19 @@ batch_size = 40
 Conv2DLayer = lasagne.layers.Conv2DLayer
 
 def load_data():
-
-    face=sklearn.datasets.fetch_olivetti_faces(shuffle=True)
-    train_set=(face.data[0:200,].reshape((200,1,64,64)),face.target[0:200,].astype(np.int32))
-    test_set =(face.data[200:400,].reshape((200,1,64,64)),face.target[200:400,].astype(np.int32))
+    arr = np.arange(10)
+    np.random.shuffle(arr)
+    train_id = arr[0:5]
+    test_id = arr[5:10]
+    for i in np.arange(39):
+        arr = np.arange(10)
+        np.random.shuffle(arr)
+        arr += (i+1)*10
+        train_id = np.concatenate((train_id,arr[0:5]),axis=0)
+        test_id = np.concatenate((test_id,arr[5:10]),axis=0)
+    face=sklearn.datasets.fetch_olivetti_faces(shuffle=False)
+    train_set=(face.data[train_id,].reshape((200,1,64,64)),face.target[train_id,].astype(np.int32))
+    test_set =(face.data[test_id,].reshape((200,1,64,64)),face.target[test_id,].astype(np.int32))
     rval = [train_set, test_set]
     return rval
 
@@ -147,10 +156,9 @@ def main(num_epochs=200):
     loss = loss.mean()+0.1*l2_penalty
     # We could add some weight decay as well here, see lasagne.regularization.
 
-    # Create update expressions for training, i.e., how to modify the
-    # parameters at each training step. Here, we'll use Stochastic Gradient
-    # Descent (SGD) with Nesterov momentum, but Lasagne offers plenty more.
     params = lasagne.layers.get_all_params(network, trainable=True)
+
+    #optimizer:
     #updates = lasagne.updates.adadelta(loss, params,learning_rate=learnrate)
     updates = lasagne.updates.nesterov_momentum(
         loss, params, learning_rate=learnrate, momentum=0.9)
@@ -182,9 +190,14 @@ def main(num_epochs=200):
         train_err = 0
         train_batches = 0
         start_time = time.time()
-        if epoch % 30 == 29:
-            learnrate*= 0.85
+        if epoch % 8 == 7:
+            learnrate*= 0.96
             #updates = lasagne.updates.adadelta(loss, params,learning_rate=learnrate)
+            updates = lasagne.updates.nesterov_momentum(
+                loss, params, learning_rate=learnrate, momentum=0.9)
+            train_fn = theano.function([input_var, target_var], loss, updates=updates)
+        if epoch % 300 == 299:
+            learnrate*= 10
             updates = lasagne.updates.nesterov_momentum(
                 loss, params, learning_rate=learnrate, momentum=0.9)
             train_fn = theano.function([input_var, target_var], loss, updates=updates)

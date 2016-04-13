@@ -85,7 +85,7 @@ def main(num_epochs=200):
     # Prepare Theano variables for inputs and targets
     input_var = T.tensor4('inputs')
     target_var = T.ivector('targets')
-    learnrate=0.02
+    learnrate=0.01
     # Create neural network model (depending on first command line parameter)
     print("Building model and compiling functions...")
 
@@ -95,7 +95,7 @@ def main(num_epochs=200):
     l2_penalty = regularize_layer_params(network, l2)
     prediction = lasagne.layers.get_output(network)
     loss = lasagne.objectives.categorical_crossentropy(prediction, target_var)
-    loss = loss.mean() + 0.1*l2_penalty
+    loss = loss.mean() + 0.05*l2_penalty
     # We could add some weight decay as well here, see lasagne.regularization.
 
     # Create update expressions for training, i.e., how to modify the
@@ -135,8 +135,8 @@ def main(num_epochs=200):
         train_err = 0
         train_batches = 0
         start_time = time.time()
-        if epoch % 50 == 49:
-            learnrate*=0.8
+        if epoch % 8 == 7:
+            learnrate*=0.96
             #updates = lasagne.updates.adadelta(loss, params,learning_rate=learnrate)
             updates = lasagne.updates.nesterov_momentum(
                 loss, params, learning_rate=learnrate, momentum=0.9)
