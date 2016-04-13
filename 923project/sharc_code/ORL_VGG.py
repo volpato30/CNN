@@ -21,7 +21,7 @@ from lasagne.layers import DenseLayer
 from lasagne.layers import NonlinearityLayer
 from lasagne.layers import DropoutLayer
 from lasagne.layers import Pool2DLayer as PoolLayer
-from lasagne.layers.dnn import Conv2DDNNLayer as ConvLayer
+from lasagne.layers import Conv2DLayer as ConvLayer
 from lasagne.nonlinearities import softmax
 
 batch_size = 40
