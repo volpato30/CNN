@@ -22,17 +22,17 @@ Conv2DLayer = lasagne.layers.Conv2DLayer
 def load_data():
     arr = np.arange(10)
     np.random.shuffle(arr)
-    train_id = arr[0:5]
-    test_id = arr[5:10]
+    train_id = arr[0:7]
+    test_id = arr[7:10]
     for i in np.arange(39):
         arr = np.arange(10)
         np.random.shuffle(arr)
         arr += (i+1)*10
-        train_id = np.concatenate((train_id,arr[0:5]),axis=0)
-        test_id = np.concatenate((test_id,arr[5:10]),axis=0)
+        train_id = np.concatenate((train_id,arr[0:7]),axis=0)
+        test_id = np.concatenate((test_id,arr[7:10]),axis=0)
     face=sklearn.datasets.fetch_olivetti_faces(shuffle=False)
-    train_set=(face.data[train_id,].reshape((200,1,64,64)),face.target[train_id,].astype(np.int32))
-    test_set =(face.data[test_id,].reshape((200,1,64,64)),face.target[test_id,].astype(np.int32))
+    train_set=(face.data[train_id,].reshape((280,1,64,64)),face.target[train_id,].astype(np.int32))
+    test_set =(face.data[test_id,].reshape((120,1,64,64)),face.target[test_id,].astype(np.int32))
     rval = [train_set, test_set]
     return rval
 

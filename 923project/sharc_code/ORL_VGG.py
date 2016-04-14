@@ -24,24 +24,24 @@ from lasagne.layers import Pool2DLayer as PoolLayer
 from lasagne.layers import Conv2DLayer as ConvLayer
 from lasagne.nonlinearities import softmax
 
-batch_size = 50
+batch_size = 40
 Conv2DLayer = lasagne.layers.Conv2DLayer
 bias = 0
 
 def load_data():
     arr = np.arange(10)
     np.random.shuffle(arr)
-    train_id = arr[0:5]
-    test_id = arr[5:10]
+    train_id = arr[0:7]
+    test_id = arr[7:10]
     for i in np.arange(39):
         arr = np.arange(10)
         np.random.shuffle(arr)
         arr += (i+1)*10
-        train_id = np.concatenate((train_id,arr[0:5]),axis=0)
-        test_id = np.concatenate((test_id,arr[5:10]),axis=0)
+        train_id = np.concatenate((train_id,arr[0:7]),axis=0)
+        test_id = np.concatenate((test_id,arr[7:10]),axis=0)
     face=sklearn.datasets.fetch_olivetti_faces(shuffle=False)
-    train_set=(face.data[train_id,].reshape((200,1,64,64)),face.target[train_id,].astype(np.int32))
-    test_set =(face.data[test_id,].reshape((200,1,64,64)),face.target[test_id,].astype(np.int32))
+    train_set=(face.data[train_id,].reshape((280,1,64,64)),face.target[train_id,].astype(np.int32))
+    test_set =(face.data[test_id,].reshape((120,1,64,64)),face.target[test_id,].astype(np.int32))
     rval = [train_set, test_set]
     return rval
 
@@ -64,6 +64,10 @@ def build_cnn(input_var=None):
     net = ConvLayer(
         net, 256, 3, pad=1, W=lasagne.init.HeNormal(gain='relu'), flip_filters=False)
     net = PoolLayer(net, 2)
+    net = ConvLayer(
+        net, 256, 3, pad=1, W=lasagne.init.HeNormal(gain='relu'),  flip_filters=False)
+    net = ConvLayer(
+        net, 256, 3, pad=1, W=lasagne.init.HeNormal(gain='relu'),  flip_filters=False)
     net = DenseLayer(net, W=lasagne.init.HeNormal(gain='relu'), num_units=256)
     net = DenseLayer(
         net, num_units=40, nonlinearity=None)
@@ -105,7 +109,7 @@ def main(num_epochs=200):
     l1_penalty = regularize_layer_params(network, l1)
     prediction = lasagne.layers.get_output(network)
     loss = lasagne.objectives.categorical_crossentropy(prediction, target_var)
-    loss = loss.mean() + 10*l2_penalty + l1_penalty
+    loss = loss.mean() + 5*l2_penalty + l1_penalty
     # We could add some weight decay as well here, see lasagne.regularization.
 
     # Create update expressions for training, i.e., how to modify the
