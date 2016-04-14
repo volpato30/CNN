@@ -196,11 +196,6 @@ def main(num_epochs=200):
             updates = lasagne.updates.nesterov_momentum(
                 loss, params, learning_rate=learnrate, momentum=0.9)
             train_fn = theano.function([input_var, target_var], loss, updates=updates)
-        if epoch % 300 == 299:
-            learnrate*= 10
-            updates = lasagne.updates.nesterov_momentum(
-                loss, params, learning_rate=learnrate, momentum=0.9)
-            train_fn = theano.function([input_var, target_var], loss, updates=updates)
 
         for batch in iterate_minibatches(X_train, y_train, batch_size, shuffle=False):
             inputs, targets = batch
@@ -230,6 +225,8 @@ def main(num_epochs=200):
         if test_acc > best_acc:
             best_acc = test_acc
             np.savez('ORL_inception.npz', *lasagne.layers.get_all_param_values(network))
+
+    print("final accuracy is:\t\t{:.6f}".format(final_results * 100))
     return best_acc
 
     # Optionally, you could now dump the network weights to a file like this:
@@ -238,7 +235,9 @@ def main(num_epochs=200):
     # with np.load('model.npz') as f:
     #     param_values = [f['arr_%d' % i] for i in range(len(f.files))]
     # lasagne.layers.set_all_param_values(network, param_values)
-
-final_results = main(500)
-
-print("final accuracy is:\t\t{:.6f}".format(final_results * 100))
+final_results = main(600)
+if __name__ == '__main__':
+    final_result = numpy.zeros(10)
+    for i in numpy.arange(10):
+        final_result[i] = main(600)
+    print("average acc is %f %%" % final_result.mean())
