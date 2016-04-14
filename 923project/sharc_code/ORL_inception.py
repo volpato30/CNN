@@ -226,7 +226,7 @@ def main(num_epochs=200):
             best_acc = test_acc
             np.savez('ORL_inception.npz', *lasagne.layers.get_all_param_values(network))
 
-    print("final accuracy is:\t\t{:.6f}".format(final_results * 100))
+    print("final accuracy is:\t\t{:.6f}".format(best_acc * 100))
     return best_acc
 
     # Optionally, you could now dump the network weights to a file like this:
@@ -235,7 +235,6 @@ def main(num_epochs=200):
     # with np.load('model.npz') as f:
     #     param_values = [f['arr_%d' % i] for i in range(len(f.files))]
     # lasagne.layers.set_all_param_values(network, param_values)
-final_results = main(600)
 if __name__ == '__main__':
     final_result = numpy.zeros(10)
     for i in numpy.arange(10):
