@@ -238,4 +238,4 @@ if __name__ == '__main__':
     for i in np.arange(10):
         final_result[i] = main(800)
     print("average acc is %f %%" % final_result.mean())
-    np.savez('result5.npz', final_result)
+    np.savez('73result2.npz', final_result)
