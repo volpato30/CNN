@@ -24,7 +24,7 @@ from lasagne.layers import Pool2DLayer as PoolLayer
 from lasagne.layers import Conv2DLayer as ConvLayer
 from lasagne.nonlinearities import softmax
 
-batch_size = 200
+batch_size = 50
 Conv2DLayer = lasagne.layers.Conv2DLayer
 bias = 0
 
@@ -102,9 +102,10 @@ def main(num_epochs=200):
     # Create a loss expression for training, i.e., a scalar objective we want
     # to minimize (for our multi-class problem, it is the cross-entropy loss):
     l2_penalty = regularize_layer_params(network, l2)
+    l1_penalty = regularize_layer_params(network, l1)
     prediction = lasagne.layers.get_output(network)
     loss = lasagne.objectives.categorical_crossentropy(prediction, target_var)
-    loss = loss.mean() + 20*l2_penalty
+    loss = loss.mean() + 10*l2_penalty + l1_penalty
     # We could add some weight decay as well here, see lasagne.regularization.
 
     # Create update expressions for training, i.e., how to modify the
@@ -178,7 +179,6 @@ def main(num_epochs=200):
 
         if test_acc > best_acc:
             best_acc = test_acc
-            np.savez('ORL_VGG.npz', *lasagne.layers.get_all_param_values(network))
     return best_acc
 
     # Optionally, you could now dump the network weights to a file like this:

@@ -224,11 +224,9 @@ def main(num_epochs=200):
 
         if test_acc > best_acc:
             best_acc = test_acc
-            np.savez('ORL_inception.npz', *lasagne.layers.get_all_param_values(network))
-
     print("final accuracy is:\t\t{:.6f}".format(best_acc * 100))
+    print('*****************************************************\n'*2)
     return best_acc
-
     # Optionally, you could now dump the network weights to a file like this:
     #
     # And load them again later on like this:
@@ -238,6 +236,6 @@ def main(num_epochs=200):
 if __name__ == '__main__':
     final_result = numpy.zeros(10)
     for i in numpy.arange(10):
-        final_result[i] = main(600)
+        final_result[i] = main(800)
     print("average acc is %f %%" % final_result.mean())
-    np.savez('result3.npz', final_result)
+    np.savez('result.npz', final_result)
