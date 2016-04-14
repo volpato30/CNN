@@ -24,7 +24,7 @@ from lasagne.layers import Pool2DLayer as PoolLayer
 from lasagne.layers import Conv2DLayer as ConvLayer
 from lasagne.nonlinearities import softmax
 
-batch_size = 40
+batch_size = 200
 Conv2DLayer = lasagne.layers.Conv2DLayer
 bias = 0
 
@@ -48,23 +48,23 @@ def load_data():
 def build_cnn(input_var=None):
     net = InputLayer(shape = (None, 1, 64, 64),input_var=input_var)
     net = ConvLayer(
-        net, 64, 3, pad=1, flip_filters=False)
+        net, 64, 3, pad=1, W=lasagne.init.HeNormal(gain='relu'),  flip_filters=False)
     net = ConvLayer(
-        net, 64, 3, pad=1, flip_filters=False)
+        net, 64, 3, pad=1, W=lasagne.init.HeNormal(gain='relu'),  flip_filters=False)
     net = PoolLayer(net, 2)
     net = ConvLayer(
-        net, 128, 3, pad=1, flip_filters=False)
+        net, 128, 3, pad=1, W=lasagne.init.HeNormal(gain='relu'),  flip_filters=False)
     net = ConvLayer(
-        net, 128, 3, pad=1, flip_filters=False)
+        net, 128, 3, pad=1, W=lasagne.init.HeNormal(gain='relu'),  flip_filters=False)
     net = PoolLayer(net, 2)
     net = ConvLayer(
-        net, 256, 3, pad=1, flip_filters=False)
+        net, 256, 3, pad=1, W=lasagne.init.HeNormal(gain='relu'),  flip_filters=False)
     net = ConvLayer(
-        net, 256, 3, pad=1, flip_filters=False)
+        net, 256, 3, pad=1, W=lasagne.init.HeNormal(gain='relu'),  flip_filters=False)
     net = ConvLayer(
-        net, 256, 3, pad=1, flip_filters=False)
+        net, 256, 3, pad=1, W=lasagne.init.HeNormal(gain='relu'), flip_filters=False)
     net = PoolLayer(net, 2)
-    net = DenseLayer(net, num_units=256)
+    net = DenseLayer(net, W=lasagne.init.HeNormal(gain='relu'), num_units=256)
     net = DenseLayer(
         net, num_units=40, nonlinearity=None)
     net = NonlinearityLayer(net, softmax)
@@ -104,7 +104,7 @@ def main(num_epochs=200):
     l2_penalty = regularize_layer_params(network, l2)
     prediction = lasagne.layers.get_output(network)
     loss = lasagne.objectives.categorical_crossentropy(prediction, target_var)
-    loss = loss.mean() + 2*l2_penalty
+    loss = loss.mean() + 20*l2_penalty
     # We could add some weight decay as well here, see lasagne.regularization.
 
     # Create update expressions for training, i.e., how to modify the
