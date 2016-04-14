@@ -234,8 +234,8 @@ def main(num_epochs=200):
     #     param_values = [f['arr_%d' % i] for i in range(len(f.files))]
     # lasagne.layers.set_all_param_values(network, param_values)
 if __name__ == '__main__':
-    final_result = numpy.zeros(10)
-    for i in numpy.arange(10):
+    final_result = np.zeros(10)
+    for i in np.arange(10):
         final_result[i] = main(800)
     print("average acc is %f %%" % final_result.mean())
-    np.savez('result.npz', final_result)
+    np.savez('result1.npz', final_result)
