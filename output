@@ -1,0 +1,5 @@
+Using gpu device 0: Tesla K20m
+Traceback (most recent call last):
+  File "./GoogleLenet.py", line 11, in <module>
+    import lasagne
+ImportError: No module named lasagne

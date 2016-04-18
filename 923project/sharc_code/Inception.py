@@ -224,7 +224,7 @@ def main(num_epochs=200):
 
         if test_acc > best_acc:
             best_acc = test_acc
-            np.savez('model1.npz', *lasagne.layers.get_all_param_values(network))
+            np.savez('model10.npz', *lasagne.layers.get_all_param_values(network))
     print("final accuracy is:\t\t{:.6f}".format(best_acc * 100))
     print('*****************************************************\n'*2)
     return best_acc
