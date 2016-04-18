@@ -1,5 +1,0 @@
-Using gpu device 0: Tesla K20m (CNMeM is disabled, CuDNN not available)
-/home/rqiao/Theano/theano/tensor/signal/downsample.py:5: UserWarning: downsample module has been moved to the pool module.
-  warnings.warn("downsample module has been moved to the pool module.")
-/home/rqiao/python/lib/python2.7/site-packages/numpy/core/fromnumeric.py:2641: VisibleDeprecationWarning: `rank` is deprecated; use the `ndim` attribute or function instead. To find the rank of a matrix see `numpy.linalg.matrix_rank`.
-  VisibleDeprecationWarning)

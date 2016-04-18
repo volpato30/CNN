@@ -1,6 +1,0 @@
-WARNING (theano.sandbox.cuda): CUDA is installed, but device gpu is not available  (error: Unable to get the number of gpus available: no CUDA-capable device is detected)
-/home/rqiao/python/lib/python2.7/site-packages/numpy/core/fromnumeric.py:2641: VisibleDeprecationWarning: `rank` is deprecated; use the `ndim` attribute or function instead. To find the rank of a matrix see `numpy.linalg.matrix_rank`.
-  VisibleDeprecationWarning)
-/home/rqiao/Theano/theano/tensor/signal/downsample.py:5: UserWarning: downsample module has been moved to the pool module.
-  warnings.warn("downsample module has been moved to the pool module.")
-slurmstepd: *** JOB 17526 CANCELLED AT 2016-04-18T15:50:43 *** on mos7
