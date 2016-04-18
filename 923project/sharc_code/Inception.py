@@ -235,4 +235,4 @@ def main(num_epochs=200):
     #     param_values = [f['arr_%d' % i] for i in range(len(f.files))]
     # lasagne.layers.set_all_param_values(network, param_values)
 if __name__ == '__main__':
-    main(800)
+    main(600)
