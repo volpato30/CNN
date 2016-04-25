@@ -14,7 +14,7 @@ time = np.zeros(1,dtype = np.float64)
 for file in fname:
     temp=sio.loadmat(file)
     data=np.concatenate((data,temp['orderbook']),axis=0)
-    time=np.concatenate((time,temp['timestamp']),axis=0)
+    time=np.concatenate((time,temp['timestamp'].flatten()),axis=0)
 data = data[1:,:]
 time = time[1:]
 
