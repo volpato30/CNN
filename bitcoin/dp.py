@@ -2,7 +2,6 @@
 
 import glob
 import scipy.io as sio
-import pandas as pd
 import numpy as np
 import os
 import re
