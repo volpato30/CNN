@@ -6,7 +6,7 @@ import numpy as np
 import os
 import re
 
-os.chdir('/scratch/rqiao/okcoin/2016-01')
+os.chdir('/scratch/rqiao/okcoin/2016-02')
 fname=glob.glob('*.mat')
 
 data=np.zeros((1,80),dtype=np.float32)
@@ -18,4 +18,4 @@ for file in fname:
 data = data[1:,:]
 time = time[1:]
 
-np.savez("/scratch/rqiao/okcoin/2016-01.npz",data,time)
+np.savez("/scratch/rqiao/okcoin/2016-02.npz",data,time)
