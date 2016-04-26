@@ -93,40 +93,40 @@ def main(num_epochs=NUM_EPOCHS):
 
     best_acc=0
 
-        print("Training ...")
-        try:
-            for epoch in range(NUM_EPOCHS):
+    print("Training ...")
+    try:
+        for epoch in range(NUM_EPOCHS):
 
-                train_err = 0
-                train_batches = 0
-                start_time = time.time()
-                for batch in iterate_minibatches(train_data, train_label, N_BATCH, WINDOW):
-                    inputs, targets = batch
-                    train_err += train(inputs, targets)
-                    train_batches += 1
+            train_err = 0
+            train_batches = 0
+            start_time = time.time()
+            for batch in iterate_minibatches(train_data, train_label, N_BATCH, WINDOW):
+                inputs, targets = batch
+                train_err += train(inputs, targets)
+                train_batches += 1
 
-                val_err = 0
-                val_acc = 0
-                val_batches = 0
-                for batch in iterate_minibatches(valid_data, valid_label, N_BATCH, WINDOW):
-                    inputs, targets = batch
-                    err, acc = valid(inputs, targets)
-                    val_err += err
-                    val_acc += acc
-                    val_batches += 1
+            val_err = 0
+            val_acc = 0
+            val_batches = 0
+            for batch in iterate_minibatches(valid_data, valid_label, N_BATCH, WINDOW):
+                inputs, targets = batch
+                err, acc = valid(inputs, targets)
+                val_err += err
+                val_acc += acc
+                val_batches += 1
 
-                val_acc = val_acc / val_batches
-                if val_acc > best_acc:
-                    best_acc = val_acc
+            val_acc = val_acc / val_batches
+            if val_acc > best_acc:
+                best_acc = val_acc
 
-                # Then we print the results for this epoch:
-                print("Epoch {} of {} took {:.3f}s".format(
-                    epoch + 1, NUM_EPOCHS, time.time() - start_time))
-                print("  training loss:\t\t{:.6f}".format(train_err / train_batches))
-                print("  validation loss:\t\t{:.6f}".format(val_err / val_batches))
-                print("  validation accuracy:\t\t{:.2f} %".format(
-                        val_acc * 100))
-        except KeyboardInterrupt:
-            pass
+            # Then we print the results for this epoch:
+            print("Epoch {} of {} took {:.3f}s".format(
+                epoch + 1, NUM_EPOCHS, time.time() - start_time))
+            print("  training loss:\t\t{:.6f}".format(train_err / train_batches))
+            print("  validation loss:\t\t{:.6f}".format(val_err / val_batches))
+            print("  validation accuracy:\t\t{:.2f} %".format(
+                    val_acc * 100))
+    except KeyboardInterrupt:
+        pass
 if __name__ == '__main__':
     main()
