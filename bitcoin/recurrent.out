@@ -1,0 +1,4 @@
+Using gpu device 0: Tesla K20m (CNMeM is disabled, CuDNN not available)
+/home/rqiao/Theano/theano/tensor/signal/downsample.py:5: UserWarning: downsample module has been moved to the pool module.
+  warnings.warn("downsample module has been moved to the pool module.")
+slurmstepd: *** JOB 17772 CANCELLED AT 2016-04-26T17:00:56 *** on mos7
