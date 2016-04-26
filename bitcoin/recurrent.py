@@ -7,7 +7,7 @@ import theano
 import theano.tensor as T
 import lasagne
 from label_data import label_data
-from iterate_minibatche import iterate_minibatches
+from iterate_minibatch import iterate_minibatches
 
 
 WINDOW = 100
