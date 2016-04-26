@@ -1,52 +1,57 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-'''
-Recurrent network example.  Trains a bidirectional vanilla RNN to output the
-sum of two numbers in a sequence of random numbers sampled uniformly from
-[0, 1] based on a separate marker sequence.
-'''
-
 from __future__ import print_function
-
-
 import numpy as np
+import time
 import theano
 import theano.tensor as T
 import lasagne
+from label_data import label_data
+from iterate_minibatches import iterate_minibatches
 
 
-MAX_LENGTH = 100
-# Number of units in the hidden (recurrent) layer
+WINDOW = 100
+
 N_HIDDEN = 200
 # Number of training sequences in each batch
-N_BATCH = 1000
+N_BATCH = 5000
 # Optimization learning rate
 LEARNING_RATE = .01
 # All gradients above this will be clipped
 GRAD_CLIP = 100
 # How often should we check the output?
-EPOCH_SIZE = 100
-# Number of epochs to train the net
+
 NUM_EPOCHS = 10
 
-data, timestamp = np.load("/scratch/rqiao/okcoin/2016-01.npz")
+timestep = 3000
+margin = 0.08
+
+a = np.load("/scratch/rqiao/okcoin/2016-01.npz")
+data = a['arr_0']
+timestamp = a['arr_1']
+label = label_data(data, timestamp, timestep, margin)
+data = data[:len(label)]
+
+#scale price:
+priceIndex = np.linspace(0,78,40,dtype=np.int8)
+price = data[:,priceIndex]
+meanPrice = price.mean()
+stdPrice = price.std()
+price = (price-meanPrice)/stdPrice
+data[:,priceIndex] = price
+
+#data split
+train_data, train_label = data[:-40200,:], label[:-40200]
+valid_data, valid_label = data[-40200:-20100,:], label[-40200:-20100]
+test_data, test_label = data[-20100:,:], label[-20100:]
 
 def main(num_epochs=NUM_EPOCHS):
     print("Building network ...")
     # First, we build the network, starting with an input layer
     # Recurrent layers expect input of shape
     # (batch size, max sequence length, number of features)
-    l_in = lasagne.layers.InputLayer(shape=(N_BATCH, MAX_LENGTH, 2))
-    # The network also needs a way to provide a mask for each sequence.  We'll
-    # use a separate input layer for that.  Since the mask only determines
-    # which indices are part of the sequence for each batch entry, they are
-    # supplied as matrices of dimensionality (N_BATCH, MAX_LENGTH)
-    l_mask = lasagne.layers.InputLayer(shape=(N_BATCH, MAX_LENGTH))
-    # We're using a bidirectional network, which means we will combine two
-    # RecurrentLayers, one with the backwards=True keyword argument.
-    # Setting a value for grad_clipping will clip the gradients in the layer
-    # Setting only_return_final=True makes the layers only return their output
-    # for the final time step, which is all we need for this task
+    l_in = lasagne.layers.InputLayer(shape=(N_BATCH, MAX_LENGTH, 80))
+
     l_forward = lasagne.layers.RecurrentLayer(
         l_in, N_HIDDEN, mask_input=l_mask, grad_clipping=GRAD_CLIP,
         W_in_to_hid=lasagne.init.HeUniform(),
@@ -62,42 +67,66 @@ def main(num_epochs=NUM_EPOCHS):
     l_concat = lasagne.layers.ConcatLayer([l_forward, l_backward])
     # Our output layer is a simple dense connection, with 1 output unit
     l_out = lasagne.layers.DenseLayer(
-        l_concat, num_units=1, nonlinearity=lasagne.nonlinearities.tanh)
+        l_concat, num_units=3, nonlinearity=lasagne.nonlinearities.softmax)
 
     target_values = T.vector('target_output')
 
-    # lasagne.layers.get_output produces a variable for the output of the net
-    network_output = lasagne.layers.get_output(l_out)
-    # The network output will have shape (n_batch, 1); let's flatten to get a
-    # 1-dimensional vector of predicted values
-    predicted_values = network_output.flatten()
-    # Our cost will be mean-squared error
-    cost = T.mean((predicted_values - target_values)**2)
-    # Retrieve all parameters from the network
+    prediction = lasagne.layers.get_output(l_out)
+    loss = lasagne.objectives.categorical_crossentropy(prediction, target_values)
+    loss = loss.mean()
+    acc = T.mean(T.eq(T.argmax(prediction, axis=1), target_values),dtype=theano.config.floatX)
+
     all_params = lasagne.layers.get_all_params(l_out)
-    # Compute SGD updates for training
+
     print("Computing updates ...")
-    updates = lasagne.updates.adagrad(cost, all_params, LEARNING_RATE)
+    updates = lasagne.updates.adagrad(loss, all_params,learn_rate)
     # Theano functions for training and computing cost
     print("Compiling functions ...")
-    train = theano.function([l_in.input_var, target_values, l_mask.input_var],
-                            cost, updates=updates)
-    compute_cost = theano.function(
-        [l_in.input_var, target_values, l_mask.input_var], cost)
+    train = theano.function([l_in.input_var, target_values],
+                            loss, updates=updates)
+    valid = theano.function([l_in.input_var, target_values],
+                            [loss, acc])
+    accuracy = theano.function(
+        [l_in.input_var, target_values],acc )
 
-    # We'll use this "validation set" to periodically check progress
-    X_val, y_val, mask_val = gen_data()
+    result = theano.function([l_in.input_var],prediction)
 
-    print("Training ...")
-    try:
-        for epoch in range(num_epochs):
-            for _ in range(EPOCH_SIZE):
-                X, y, m = gen_data()
-                train(X, y, m)
-            cost_val = compute_cost(X_val, y_val, mask_val)
-            print("Epoch {} validation cost = {}".format(epoch, cost_val))
-    except KeyboardInterrupt:
-        pass
+    best_acc=0
 
+        print("Training ...")
+        try:
+            for epoch in range(NUM_EPOCHS):
+
+                train_err = 0
+                train_batches = 0
+                start_time = time.time()
+                for batch in iterate_minibatches(train_data, train_label, N_BATCH, WINDOW):
+                    inputs, targets = batch
+                    train_err += train(inputs, targets)
+                    train_batches += 1
+
+                val_err = 0
+                val_acc = 0
+                val_batches = 0
+                for batch in iterate_minibatches(valid_data, valid_label, N_BATCH, WINDOW):
+                    inputs, targets = batch
+                    err, acc = valid(inputs, targets)
+                    val_err += err
+                    val_acc += acc
+                    val_batches += 1
+
+                val_acc = val_acc / val_batches
+                if val_acc > best_acc:
+                    best_acc = val_acc
+
+                # Then we print the results for this epoch:
+                print("Epoch {} of {} took {:.3f}s".format(
+                    epoch + 1, NUM_EPOCHS, time.time() - start_time))
+                print("  training loss:\t\t{:.6f}".format(train_err / train_batches))
+                print("  validation loss:\t\t{:.6f}".format(val_err / val_batches))
+                print("  validation accuracy:\t\t{:.2f} %".format(
+                        val_acc * 100))
+        except KeyboardInterrupt:
+            pass
 if __name__ == '__main__':
     main()
