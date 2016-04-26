@@ -53,12 +53,12 @@ def main(num_epochs=NUM_EPOCHS):
     l_in = lasagne.layers.InputLayer(shape=(N_BATCH, MAX_LENGTH, 80))
 
     l_forward = lasagne.layers.RecurrentLayer(
-        l_in, N_HIDDEN, mask_input=l_mask, grad_clipping=GRAD_CLIP,
+        l_in, N_HIDDEN, grad_clipping=GRAD_CLIP,
         W_in_to_hid=lasagne.init.HeUniform(),
         W_hid_to_hid=lasagne.init.HeUniform(),
         nonlinearity=lasagne.nonlinearities.tanh, only_return_final=True)
     l_backward = lasagne.layers.RecurrentLayer(
-        l_in, N_HIDDEN, mask_input=l_mask, grad_clipping=GRAD_CLIP,
+        l_in, N_HIDDEN, grad_clipping=GRAD_CLIP,
         W_in_to_hid=lasagne.init.HeUniform(),
         W_hid_to_hid=lasagne.init.HeUniform(),
         nonlinearity=lasagne.nonlinearities.tanh,
