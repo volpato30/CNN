@@ -50,7 +50,7 @@ def main(num_epochs=NUM_EPOCHS):
     # First, we build the network, starting with an input layer
     # Recurrent layers expect input of shape
     # (batch size, max sequence length, number of features)
-    l_in = lasagne.layers.InputLayer(shape=(N_BATCH, MAX_LENGTH, 80))
+    l_in = lasagne.layers.InputLayer(shape=(N_BATCH, WINDOW, 80))
 
     l_forward = lasagne.layers.RecurrentLayer(
         l_in, N_HIDDEN, grad_clipping=GRAD_CLIP,
