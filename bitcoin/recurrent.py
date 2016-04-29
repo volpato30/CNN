@@ -10,11 +10,11 @@ from label_data import label_data
 from iterate_minibatch import iterate_minibatches
 
 
-WINDOW = 100
+WINDOW = 20
 
 N_HIDDEN = 200
 # Number of training sequences in each batch
-N_BATCH = 5000
+N_BATCH = 20000
 # Optimization learning rate
 LEARNING_RATE = .01
 # All gradients above this will be clipped
