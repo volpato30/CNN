@@ -10,6 +10,7 @@ from label_data import label_data
 from iterate_minibatch import iterate_minibatches
 
 timestep = 3000
+margin = 0.08
 
 a = np.load("/scratch/rqiao/okcoin/2016-01.npz")
 data = a['arr_0']
