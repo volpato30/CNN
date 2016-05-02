@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/opt/sharcnet/python/2.7.5/gcc/bin/python
 from __future__ import print_function
 import numpy as np
 import time
