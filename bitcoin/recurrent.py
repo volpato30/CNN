@@ -41,7 +41,7 @@ price = (price-meanPrice)/stdPrice
 data[:,priceIndex] = price
 
 #data split
-train_data, train_label = data[:-40200,:], label[:-40200]
+train_data, train_label = data[-200400:-40200,:], label[-200400:-40200]
 valid_data, valid_label = data[-40200:-20100,:], label[-40200:-20100]
 test_data, test_label = data[-20100:,:], label[-20100:]
 
@@ -69,7 +69,7 @@ def main(num_epochs=NUM_EPOCHS):
     l_out = lasagne.layers.DenseLayer(
         l_concat, num_units=3, nonlinearity=lasagne.nonlinearities.softmax)
 
-    target_values = T.vector('target_output')
+    target_values = T.ivector('target_output')
 
     prediction = lasagne.layers.get_output(l_out)
     loss = lasagne.objectives.categorical_crossentropy(prediction, target_values)
