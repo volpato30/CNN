@@ -9,9 +9,11 @@ import lasagne
 from label_data import label_data
 from iterate_minibatch import iterate_minibatches
 
+timestep = 3000
+
 a = np.load("/scratch/rqiao/okcoin/2016-01.npz")
 data = a['arr_0']
 timestamp = a['arr_1']
 label = label_data(data, timestamp, timestep, margin)
 data = data[:len(label)]
-np.savez("/scratch/rqiao/okcoin/labeled2016-01.npz",data,timestamp,label)
+np.savez("/scratch/rqiao/okcoin/labeled2016-01t30.npz",data,timestamp,label)
