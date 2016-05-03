@@ -13,7 +13,7 @@ WINDOW = 20
 
 N_HIDDEN = 200
 # Number of training sequences in each batch
-N_BATCH = 20000
+N_BATCH = 10000
 # Optimization learning rate
 LEARNING_RATE = .01
 # All gradients above this will be clipped
@@ -25,12 +25,10 @@ NUM_EPOCHS = 10
 timestep = 3000
 margin = 0.08
 
-a = np.load("/scratch/rqiao/okcoin/2016-01.npz")
+a = np.load("/scratch/rqiao/okcoin/labeled0201.npz")
 data = a['arr_0']
 timestamp = a['arr_1']
-label = label_data(data, timestamp, timestep, margin)
-data = data[:len(label)]
-
+label = a['arr_2']
 #scale price:
 priceIndex = np.linspace(0,78,40,dtype=np.int8)
 price = data[:,priceIndex]
@@ -40,9 +38,9 @@ price = (price-meanPrice)/stdPrice
 data[:,priceIndex] = price
 
 #data split
-train_data, train_label = data[-200400:-40200,:], label[-200400:-40200]
-valid_data, valid_label = data[-40200:-20100,:], label[-40200:-20100]
-test_data, test_label = data[-20100:,:], label[-20100:]
+train_data, train_label = data[:-20200,:], label[:-20200]
+valid_data, valid_label = data[-20200:-10100,:], label[-20200:-10100]
+test_data, test_label = data[-10100:,:], label[-10100:]
 
 def main(num_epochs=NUM_EPOCHS):
     print("Building network ...")
