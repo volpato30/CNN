@@ -8,3 +8,4 @@ label = a['arr_2']
 print data.shape
 print timestamp.shape
 print label.shape
+print data[0,:]

@@ -14,12 +14,12 @@ os.chdir('/scratch/rqiao/okcoin/2016-02')
 file = '2016-02-01.mat'
 temp=sio.loadmat(file)
 data = temp['orderbook']
-print data.shape
+print(data.shape)
 timestamp = temp['timestamp'].flatten()
 label = label_data(data, timestamp, timestep, margin)
 data = data[:len(label)]
 timestamp = timestamp[:len(label)]
 np.savez("/scratch/rqiao/okcoin/labeled0201.npz",data,timestamp,label)
-print data.shape
-print timestamp.shape
-print label.shape
+print(data.shape)
+print(timestamp.shape)
+print(label.shape)
