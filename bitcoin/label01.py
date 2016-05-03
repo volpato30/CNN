@@ -2,19 +2,24 @@
 
 from __future__ import print_function
 import numpy as np
-import time
-import theano
-import theano.tensor as T
-import lasagne
 from label_data import label_data
-from iterate_minibatch import iterate_minibatches
-
+import scipy.io as sio
+import numpy as np
+import os
+import re
 timestep = 3000
 margin = 0.08
 
-a = np.load("/scratch/rqiao/okcoin/2016-01.npz")
-data = a['arr_0']
-timestamp = a['arr_1']
+os.chdir('/scratch/rqiao/okcoin/2016-02')
+file = '2016-02-01.mat'
+temp=sio.loadmat(file)
+data = temp['orderbook']
+print data.shape
+timestamp = temp['timestamp'].flatten()
 label = label_data(data, timestamp, timestep, margin)
 data = data[:len(label)]
-np.savez("/scratch/rqiao/okcoin/labeled2016-01t30.npz",data,timestamp,label)
+timestamp = timestamp[:len(label)]
+np.savez("/scratch/rqiao/okcoin/labeled0201.npz",data,timestamp,label)
+print data.shape
+print timestamp.shape
+print label.shape
