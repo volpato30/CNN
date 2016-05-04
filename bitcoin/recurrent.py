@@ -23,7 +23,7 @@ LEARNING_RATE = .002
 GRAD_CLIP = 100
 # How often should we check the output?
 
-NUM_EPOCHS = 100
+NUM_EPOCHS = 500
 
 timestep = 3000
 margin = 0.08
