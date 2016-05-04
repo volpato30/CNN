@@ -9,7 +9,7 @@ from label_data import label_data
 from iterate_minibatch import iterate_minibatches
 from lasagne.regularization import regularize_layer_params, l2, l1
 
-lamda = 1
+lamda = 0.1
 
 WINDOW = 50
 
@@ -17,7 +17,7 @@ N_HIDDEN = 100
 # Number of training sequences in each batch
 N_BATCH = 2000
 # Optimization learning rate
-LEARNING_RATE = .01
+LEARNING_RATE = .002
 # All gradients above this will be clipped
 GRAD_CLIP = 200
 # How often should we check the output?
@@ -25,7 +25,7 @@ GRAD_CLIP = 200
 NUM_EPOCHS = 100
 
 
-a = np.load("/scratch/rqiao/okcoin/labeled0201.npz")
+a = np.load("/scratch/rqiao/okcoin/labeled-02-12:18.npz")
 data = a['arr_0']
 timestamp = a['arr_1']
 label = a['arr_2']
@@ -63,8 +63,8 @@ def main(num_epochs=NUM_EPOCHS):
 
     prediction = lasagne.layers.get_output(l_out)
     loss = lasagne.objectives.categorical_crossentropy(prediction, target_values)
-    l2_penalty = regularize_layer_params(l_out, l2)
-    loss = loss.mean() + lamda *  l2_penalty
+    l1_penalty = regularize_layer_params(l_out, l1)
+    loss = loss.mean() + lamda *  l1_penalty
     acc = T.mean(T.eq(T.argmax(prediction, axis=1), target_values),dtype=theano.config.floatX)
 
     all_params = lasagne.layers.get_all_params(l_out)

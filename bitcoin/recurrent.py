@@ -12,7 +12,7 @@ from lasagne.regularization import regularize_layer_params, l2, l1
 
 lamda = 0.1
 
-WINDOW = 20
+WINDOW = 50
 
 N_HIDDEN = 100
 # Number of training sequences in each batch
@@ -28,7 +28,7 @@ NUM_EPOCHS = 500
 timestep = 3000
 margin = 0.08
 
-a = np.load("/scratch/rqiao/okcoin/labeled0201.npz")
+a = np.load("/scratch/rqiao/okcoin/labeled-02-12:18.npz")
 data = a['arr_0']
 timestamp = a['arr_1']
 label = a['arr_2']
