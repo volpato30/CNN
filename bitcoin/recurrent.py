@@ -18,7 +18,7 @@ N_HIDDEN = 100
 # Number of training sequences in each batch
 N_BATCH = 10000
 # Optimization learning rate
-LEARNING_RATE = .002
+LEARNING_RATE = .01
 # All gradients above this will be clipped
 GRAD_CLIP = 100
 # How often should we check the output?
@@ -41,9 +41,9 @@ price = (price-meanPrice)/stdPrice
 data[:,priceIndex] = price
 
 #data split
-train_data, train_label = data[:-20200,:], label[:-20200]
-valid_data, valid_label = data[-20200:-10100,:], label[-20200:-10100]
-test_data, test_label = data[-10100:,:], label[-10100:]
+train_data, train_label = data[:-20200,:20], label[:-20200]
+valid_data, valid_label = data[-20200:-10100,:20], label[-20200:-10100]
+test_data, test_label = data[-10100:,:20], label[-10100:]
 
 def main(num_epochs=NUM_EPOCHS):
     print("Building network ...")
@@ -98,7 +98,11 @@ def main(num_epochs=NUM_EPOCHS):
     print("Training ...")
     try:
         for epoch in range(NUM_EPOCHS):
-
+            if epoch % 40 == 39:
+                LEARNING_RATE *= 0.5
+                updates = lasagne.updates.adagrad(loss, all_params,LEARNING_RATE)
+                train = theano.function([l_in.input_var, target_values],
+                                        loss, updates=updates)
             train_err = 0
             train_batches = 0
             start_time = time.time()
