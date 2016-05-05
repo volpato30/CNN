@@ -9,20 +9,20 @@ from label_data import label_data
 from iterate_minibatch import iterate_minibatches
 from lasagne.regularization import regularize_layer_params, l2, l1
 
-lamda = 0.1
+lamda = 0.5
 
 WINDOW = 50
 
-N_HIDDEN = 100
+N_HIDDEN = 128
 # Number of training sequences in each batch
 N_BATCH = 2000
 # Optimization learning rate
-LEARNING_RATE = .002
+LEARNING_RATE = .01
 # All gradients above this will be clipped
 GRAD_CLIP = 200
 # How often should we check the output?
 
-NUM_EPOCHS = 100
+NUM_EPOCHS = 300
 
 
 a = np.load("/scratch/rqiao/okcoin/labeled-02-12:18.npz")
@@ -38,16 +38,16 @@ price = (price-meanPrice)/stdPrice
 data[:,priceIndex] = price
 
 #data split
-train_data, train_label = data[:-20200,:], label[:-20200]
-valid_data, valid_label = data[-20200:-10100,:], label[-20200:-10100]
-test_data, test_label = data[-10100:,:], label[-10100:]
+train_data, train_label = data[:-20200,:20], label[:-20200]
+valid_data, valid_label = data[-20200:-10100,:20], label[-20200:-10100]
+test_data, test_label = data[-10100:,:20], label[-10100:]
 
 def main(num_epochs=NUM_EPOCHS):
     print("Building network ...")
     # First, we build the network, starting with an input layer
     # Recurrent layers expect input of shape
     # (batch size, max sequence length, number of features)
-    l_in = lasagne.layers.InputLayer(shape=(N_BATCH, WINDOW, 80))
+    l_in = lasagne.layers.InputLayer(shape=(N_BATCH, WINDOW, 20))
 
     l_forward = lasagne.layers.LSTMLayer(
         l_in, N_HIDDEN, grad_clipping=GRAD_CLIP, only_return_final=True)
@@ -87,7 +87,11 @@ def main(num_epochs=NUM_EPOCHS):
     print("Training ...")
     try:
         for epoch in range(NUM_EPOCHS):
-
+            if epoch % 50 == 49:
+                LEARNING_RATE *= 0.5
+                updates = lasagne.updates.adagrad(loss, all_params,LEARNING_RATE)
+                train = theano.function([l_in.input_var, target_values],
+                                        loss, updates=updates)
             train_err = 0
             train_batches = 0
             start_time = time.time()
