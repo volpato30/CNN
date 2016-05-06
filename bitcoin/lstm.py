@@ -68,7 +68,7 @@ def main(num_epochs=NUM_EPOCHS):
     acc = T.mean(T.eq(T.argmax(prediction, axis=1), target_values),dtype=theano.config.floatX)
 
     all_params = lasagne.layers.get_all_params(l_out)
-
+    LEARNING_RATE = .01
     print("Computing updates ...")
     updates = lasagne.updates.adagrad(loss, all_params,LEARNING_RATE)
     # Theano functions for training and computing cost
@@ -89,7 +89,7 @@ def main(num_epochs=NUM_EPOCHS):
         for epoch in range(NUM_EPOCHS):
             if epoch % 50 == 49:
                 LEARNING_RATE *= 0.5
-                updates = lasagne.updates.adagrad(loss, all_params,LEARNING_RATE)
+                updates = lasagne.updates.adagrad(loss, all_params, LEARNING_RATE)
                 train = theano.function([l_in.input_var, target_values],
                                         loss, updates=updates)
             train_err = 0
