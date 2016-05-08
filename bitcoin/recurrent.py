@@ -31,13 +31,19 @@ data = a['arr_0']
 timestamp = a['arr_1']
 label = a['arr_2']
 #scale price:
-priceIndex = np.linspace(0,78,40,dtype=np.int8)
+priceIndex = np.linspace(0,18,10,dtype=np.int8)
 price = data[:,priceIndex]
 meanPrice = price.mean()
 stdPrice = price.std()
 price = (price-meanPrice)/stdPrice
 data[:,priceIndex] = price
-
+volumeIndex = np.linspace(1,19,10,dtype=np.int8)
+for index in volumeIndex:
+    volume = data[:,index]
+    meanVolume = volume.mean()
+    stdVolume = volume.std()
+    volume = (volume-meanVolume)/stdVolume
+    data[:,index] = volume
 #data split
 train_data, train_label = data[:-20200,:20], label[:-20200]
 valid_data, valid_label = data[-20200:-10100,:20], label[-20200:-10100]
