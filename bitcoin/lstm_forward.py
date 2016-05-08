@@ -64,10 +64,12 @@ def main(num_epochs=NUM_EPOCHS):
     target_values = T.ivector('target_output')
 
     prediction = lasagne.layers.get_output(l_out)
+    test_prediction = lasagne.layers.get_output(l_out,deterministic=True)
     loss = lasagne.objectives.categorical_crossentropy(prediction, target_values)
     l1_penalty = regularize_layer_params(l_out, l1)
-    loss = loss.mean() + lamda *  l1_penalty
-    acc = T.mean(T.eq(T.argmax(prediction, axis=1), target_values),dtype=theano.config.floatX)
+    test_loss = loss.mean()
+    loss = test_loss + lamda *  l1_penalty
+    acc = T.mean(T.eq(T.argmax(test_prediction, axis=1), target_values),dtype=theano.config.floatX)
 
     all_params = lasagne.layers.get_all_params(l_out)
     LEARNING_RATE = .01
@@ -78,7 +80,7 @@ def main(num_epochs=NUM_EPOCHS):
     train = theano.function([l_in.input_var, target_values],
                             loss, updates=updates)
     valid = theano.function([l_in.input_var, target_values],
-                            [loss, acc])
+                            [test_loss, acc])
     accuracy = theano.function(
         [l_in.input_var, target_values],acc )
 
