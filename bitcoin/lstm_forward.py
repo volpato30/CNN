@@ -87,12 +87,13 @@ def main(num_epochs=NUM_EPOCHS):
     result = theano.function([l_in.input_var],prediction)
 
     best_acc=0
-
+    best_val_err = 10000
+    flag = 0
     print("Training ...")
     try:
         for epoch in range(NUM_EPOCHS):
-            if epoch % 50 == 49:
-                LEARNING_RATE *= 0.5
+            if epoch - flag > 10:
+                LEARNING_RATE *= 0.2
                 updates = lasagne.updates.nesterov_momentum(loss, all_params,LEARNING_RATE,0.95)
                 train = theano.function([l_in.input_var, target_values],
                                         loss, updates=updates)
@@ -115,14 +116,17 @@ def main(num_epochs=NUM_EPOCHS):
                 val_batches += 1
 
             val_acc = val_acc / val_batches
+            val_err = val_err / val_batches)
             if val_acc > best_acc:
                 best_acc = val_acc
-
+            if val_err < best_val_err:
+                best_val_err = val_err
+                flag = epoch
             # Then we print the results for this epoch:
             print("Epoch {} of {} took {:.3f}s".format(
                 epoch + 1, NUM_EPOCHS, time.time() - start_time))
             print("  training loss:\t\t{:.6f}".format(train_err / train_batches))
-            print("  validation loss:\t\t{:.6f}".format(val_err / val_batches))
+            print("  validation loss:\t\t{:.6f}".format(val_err))
             print("  validation accuracy:\t\t{:.2f} %".format(
                     val_acc * 100))
     except KeyboardInterrupt:
