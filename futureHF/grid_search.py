@@ -1,5 +1,5 @@
 from sys import path
-path.append('/work/rqiao/HFdata/mewp')
+path.append('/work/rqiao/HFdata')
 
 from mewp.simulate.wrapper import PairAlgoWrapper
 from mewp.simulate.runner import PairRunner
@@ -17,7 +17,6 @@ import pandas as pd
 import datetime as dt
 from numpy import cumsum, log, sqrt, std, subtract
 from Queue import Queue
-%matplotlib inline
 from mewp.util.futures import get_day_db_path
 
 from mewp.reader.futuresqlite import SqliteReaderDce, SqliteReaderL1
@@ -137,7 +136,7 @@ class MyAlgo(PairAlgoWrapper):
     def on_daystart(self, info):
         pass
 
-pair = ['c1505', 'c1509']
+pair = ['m1505', 'm1509']
 date_list = get_trade_day(pair)
 algo = { 'class': MyAlgo }
 algo['param'] = {'x': pair[0],
@@ -156,11 +155,6 @@ settings = { 'date': date_list,
              'algo': algo}
 
 runner = PairRunner(settings)
-runner.run()
-account = runner.account
-history = account.history.to_dataframe(account.items)
-score = float(history[['pnl']].iloc[-1])
-runner = PairRunner(settings)
 rolling_list = range(1000,20000,2000)
 rolling_sigma_list = range(1000,20000,2000)
 sd_coef_list = np.arange(2,8,0.5)
@@ -176,7 +170,6 @@ pars = list(itertools.product(rolling_list, rolling_sigma_list, sd_coef_list, st
 result = pd.DataFrame({"rolling": [p[0] for p in pars],
                        "rolling_sigma": [p[1] for p in pars],
                        "sd_coef": [p[2] for p in pars],
-                       "stop_win": [p[3] for p in pars]
+                       "stop_win": [p[3] for p in pars],
                        "PNL": [float(f) for f in final_profit]})
-                       import pickle
-pickle.dump(result, open( "c_stopwin_result.p", "wb" ) )
+pickle.dump(result, open( "m_stopwin_result.p", "wb" ) )
