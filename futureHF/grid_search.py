@@ -165,6 +165,8 @@ for r in rolling_list :
         for sd in sd_coef_list :
             for sw in stop_win_list:
                 runner.run(algo_param={'rolling': r, 'rolling_sigma': rs, 'sd_coef': sd, 'stop_win': sw })
+                account = runner.account
+                history = account.history.to_dataframe(account.items)
                 final_profit.append(float(history[['pnl']].iloc[-1]))
 pars = list(itertools.product(rolling_list, rolling_sigma_list, sd_coef_list, stop_win_list))
 result = pd.DataFrame({"rolling": [p[0] for p in pars],
