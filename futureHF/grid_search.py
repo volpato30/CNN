@@ -47,7 +47,6 @@ class Moving(object):
     def add(self,observe):
         self.sums += observe
         self.queue.put(observe)
-        self.sigma_queue.put(observe)
         while self.queue.qsize() > self.size:
             popped = self.queue.get()
             self.sums -= popped
