@@ -4,6 +4,7 @@ path.append('/work/rqiao/HFdata')
 from mewp.simulate.wrapper import PairAlgoWrapper
 from mewp.simulate.runner import PairRunner
 from mewp.math.simple import SimpleMoving
+import time
 
 import matplotlib
 import matplotlib.pylab as plt
@@ -155,19 +156,23 @@ settings = { 'date': date_list,
              'algo': algo}
 
 runner = PairRunner(settings)
-rolling_list = range(1000,20000,2000)
-rolling_sigma_list = range(1000,20000,2000)
-sd_coef_list = np.arange(2,8,0.5)
-stop_win_list = range(1,10)
+rolling_list = range(1000,10000,2000)
+rolling_sigma_list = range(1000,10000,2000)
+sd_coef_list = np.arange(2,8)
+stop_win_list = np.arange(1,10,2)
 final_profit = []
 for r in rolling_list :
     for rs in rolling_sigma_list:
         for sd in sd_coef_list :
             for sw in stop_win_list:
+                start_time = time.time()
                 runner.run(algo_param={'rolling': r, 'rolling_sigma': rs, 'sd_coef': sd, 'stop_win': sw })
                 account = runner.account
                 history = account.history.to_dataframe(account.items)
-                final_profit.append(float(history[['pnl']].iloc[-1]))
+                score = float(history[['pnl']].iloc[-1])
+                final_profit.append(score)
+                print("rolling {}, rolling_sigma {}, sd_coef {}, stop_win {},\
+                 backtest took {:.3f}s, score is {:.3f}".format(r, rs, sd, sw, time.time() - start_time, score))
 pars = list(itertools.product(rolling_list, rolling_sigma_list, sd_coef_list, stop_win_list))
 result = pd.DataFrame({"rolling": [p[0] for p in pars],
                        "rolling_sigma": [p[1] for p in pars],
