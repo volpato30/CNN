@@ -34,14 +34,19 @@ class TestAlgo(PairAlgoWrapper):
         super(TestAlgo, self).param_updated()
 
         # create rolling
-        self.long_roll = SimpleMoving(size=self.param['rolling'])
-        self.short_roll = SimpleMoving(size=self.param['rolling'])
         self.sd_coef = self.param['sd_coef']
         self.block = self.param['block']
         self.stop_win = self.param['stop_win']
         self.last_long_res = -999
         self.last_short_res = -999
 
+    def on_daystart(self, date, info_x, info_y):
+        # recreate rolling at each day start
+        self.long_roll = SimpleMoving(size=self.param['rolling'])
+        self.short_roll = SimpleMoving(size=self.param['rolling'])
+
+    def on_dayend(self, date, info_x, info_y):
+        pass
 
     def on_tick(self, multiple, contract, info):
         # skip if hasn't receive price on both side
@@ -83,9 +88,6 @@ class TestAlgo(PairAlgoWrapper):
         # update rolling
         self.long_roll.add(long_res)
         self.short_roll.add(short_res)
-
-    def on_daystart(self, info):
-        pass
 
 pair = ['c1505', 'c1509']
 date_list = get_trade_day(pair)
