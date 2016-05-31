@@ -1,5 +1,4 @@
 sqsub -n 1 -r 5d -o ./out/grid_search_two_roll_m.out --mpp 20G python grid_search_two_roll_m.py
 sqsub -n 1 -r 5d -o ./out/grid_search_two_roll_a.out --mpp 20G python grid_search_two_roll_a.py
 sqsub -n 1 -r 5d -o ./out/grid_search_two_roll_i.out --mpp 20G python grid_search_two_roll_i.py
-sqsub -q cpu -n 1 -r 5d -o ./out/grid_search_two_roll_cs.out --mpp 20G python grid_search_two_roll_cs.py
-sqsub -q cpu -n 1 -r 5d -o ./out/grid_search_two_roll_c.out --mpp 20G python grid_search_two_roll_c.py
+sqsub -n 1 -r 5d -o ./out/grid_search_two_roll_cs.out --mpp 20G python grid_search_two_roll_cs.py
