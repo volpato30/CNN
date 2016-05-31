@@ -89,7 +89,7 @@ class TestAlgo(PairAlgoWrapper):
 
 pair = ['c1505', 'c1509']
 date_list = get_trade_day(pair)
-algo = { 'class': MyAlgo }
+algo = { 'class': TestAlgo }
 algo['param'] = {'x': pair[0],
                  'y': pair[1],
                  'a': 1,
