@@ -122,7 +122,7 @@ for r in rolling_list :
             history = account.history.to_dataframe(account.items)
             score = float(history[['pnl']].iloc[-1])
             final_profit.append(score)
-            print("rolling {}, rolling_sigma {}, sd_coef {}, stop_win {}, backtest took {:.3f}s, score is {:.3f}".format(r, rs, sd, sw, time.time() - start_time, score))
+            print("rolling {}, sd_coef {}, stop_win {}, backtest took {:.3f}s, score is {:.3f}".format(r, sd, sw, time.time() - start_time, score))
 pars = list(itertools.product(rolling_list, sd_coef_list, stop_win_list))
 result = pd.DataFrame({"rolling": [p[0] for p in pars],
                        "sd_coef": [p[2] for p in pars],
