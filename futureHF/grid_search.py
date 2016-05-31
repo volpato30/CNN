@@ -136,7 +136,7 @@ class MyAlgo(PairAlgoWrapper):
     def on_daystart(self, info):
         pass
 
-pair = ['c1505', 'c1509']
+pair = ['m1505', 'm1509']
 date_list = get_trade_day(pair)
 algo = { 'class': MyAlgo }
 algo['param'] = {'x': pair[0],
@@ -178,4 +178,4 @@ result = pd.DataFrame({"rolling": [p[0] for p in pars],
                        "sd_coef": [p[2] for p in pars],
                        "stop_win": [p[3] for p in pars],
                        "PNL": [float(f) for f in final_profit]})
-pickle.dump(result, open( "c_stopwin_fast_result.p", "wb" ) )
+pickle.dump(result, open( "m_stopwin_fast_result.p", "wb" ) )
