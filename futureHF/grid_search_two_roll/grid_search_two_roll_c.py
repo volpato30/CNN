@@ -46,18 +46,19 @@ class Moving(object):
     # @param mean mean at that moment
     def add(self,observe):
         self.sums += observe
+        self.powersum += observe**2
         self.queue.put(observe)
+        self.sigma_queue.put(observe)
         while self.queue.qsize() > self.size:
             popped = self.queue.get()
             self.sums -= popped
         self.mean = self.sums / self.queue.qsize()
-        self.sigma_queue.put(observe-self.mean)
-        self.powersum += (observe - self.mean) ** 2
         while self.sigma_queue.qsize() > self.sigma_size:
             popped = self.sigma_queue.get()
             self.powersum -= popped ** 2
-        self.var = self.powersum / self.sigma_queue.qsize()
-        self.sd = sqrt(self.var)
+        size = self.sigma_queue.qsize()
+        self.var = (self.powersum - size*self.mean*self.mean) / size
+        self.std = sqrt(self.var)
 
     # return the standard deviation
     # @param mean mean for this moment
@@ -76,8 +77,6 @@ class MyAlgo(PairAlgoWrapper):
         # make sure parent updates its param
         super(MyAlgo, self).param_updated()
         # create rolling
-        self.long_roll = Moving(size = self.param['rolling'], sigma_size = self.param['rolling_sigma'])
-        self.short_roll = Moving(size = self.param['rolling'], sigma_size = self.param['rolling_sigma'])
         self.sd_coef = self.param['sd_coef']
         self.block = self.param['block']
         self.stop_win = self.param['stop_win']
@@ -86,6 +85,10 @@ class MyAlgo(PairAlgoWrapper):
         self.last_long_res = -999
         self.last_short_res = -999
 
+    def on_daystart(self, date, info_x, info_y):
+        # recreate rolling at each day start
+        self.long_roll = Moving(size = self.param['rolling'], sigma_size = self.param['rolling_sigma'])
+        self.short_roll = Moving(size = self.param['rolling'], sigma_size = self.param['rolling_sigma'])
 
     def on_tick(self, multiple, contract, info):
         # skip if price_table doesnt have both, TODO fix this bug internally
@@ -133,10 +136,10 @@ class MyAlgo(PairAlgoWrapper):
                         self.last_short_res = short_res
                 else:
                     pass
-    def on_daystart(self, info):
+    def on_dayend(self, date, info_x, info_y):
         pass
 
-pair = ['m1505', 'm1509']
+pair = ['c1505', 'c1509']
 date_list = get_trade_day(pair)
 algo = { 'class': MyAlgo }
 algo['param'] = {'x': pair[0],
@@ -153,12 +156,13 @@ settings = { 'date': date_list,
              'path': DATA_PATH,
              'tickset': 'top',
              'algo': algo}
-
 runner = PairRunner(settings)
+price_diff = get_price_diff(pair)
+price_diff_std = np.nanstd(price_diff)
 rolling_list = range(1000,10000,2000)
 rolling_sigma_list = range(1000,10000,2000)
 sd_coef_list = np.arange(2,8)
-stop_win_list = np.arange(1,10,2)
+stop_win_list = price_diff_std * np.arange(0.3,3,0.3)
 final_profit = []
 for r in rolling_list :
     for rs in rolling_sigma_list:
@@ -177,4 +181,4 @@ result = pd.DataFrame({"rolling": [p[0] for p in pars],
                        "sd_coef": [p[2] for p in pars],
                        "stop_win": [p[3] for p in pars],
                        "PNL": [float(f) for f in final_profit]})
-pickle.dump(result, open( "m_stopwin_fast_result.p", "wb" ) )
+pickle.dump(result, open( "grid_search_two_roll_c.p", "wb" ) )
