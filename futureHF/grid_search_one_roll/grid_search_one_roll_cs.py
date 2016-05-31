@@ -34,14 +34,19 @@ class TestAlgo(PairAlgoWrapper):
         super(TestAlgo, self).param_updated()
 
         # create rolling
-        self.long_roll = SimpleMoving(size=self.param['rolling'])
-        self.short_roll = SimpleMoving(size=self.param['rolling'])
         self.sd_coef = self.param['sd_coef']
         self.block = self.param['block']
         self.stop_win = self.param['stop_win']
         self.last_long_res = -999
         self.last_short_res = -999
 
+    def on_daystart(self, date, info_x, info_y):
+        # recreate rolling at each day start
+        self.long_roll = SimpleMoving(size=self.param['rolling'])
+        self.short_roll = SimpleMoving(size=self.param['rolling'])
+
+    def on_dayend(self, date, info_x, info_y):
+        pass
 
     def on_tick(self, multiple, contract, info):
         # skip if hasn't receive price on both side
@@ -84,8 +89,6 @@ class TestAlgo(PairAlgoWrapper):
         self.long_roll.add(long_res)
         self.short_roll.add(short_res)
 
-    def on_daystart(self, info):
-        pass
 
 pair = ['cs1505', 'cs1509']
 date_list = get_trade_day(pair)
@@ -120,7 +123,7 @@ for r in rolling_list :
             history = account.history.to_dataframe(account.items)
             score = float(history[['pnl']].iloc[-1])
             final_profit.append(score)
-            print("rolling {}, rolling_sigma {}, sd_coef {}, stop_win {}, backtest took {:.3f}s, score is {:.3f}".format(r, rs, sd, sw, time.time() - start_time, score))
+            print("rolling {}, sd_coef {}, stop_win {}, backtest took {:.3f}s, score is {:.3f}".format(r, sd, sw, time.time() - start_time, score))
 pars = list(itertools.product(rolling_list, sd_coef_list, stop_win_list))
 result = pd.DataFrame({"rolling": [p[0] for p in pars],
                        "sd_coef": [p[2] for p in pars],
