@@ -1,0 +1,1 @@
+sqsub -n 1 -r 5d -o ./out/if_Jan.out --mpp 20G python if_Jan.py
