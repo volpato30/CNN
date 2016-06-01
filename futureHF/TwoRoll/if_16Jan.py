@@ -65,7 +65,7 @@ class Moving(object):
     def get_mean(self):
         return self.mean
 
-class MyAlgo(PairAlgoWrapper):
+class TestAlgo(PairAlgoWrapper):
 
     # called when algo param is set
     def param_updated(self):
