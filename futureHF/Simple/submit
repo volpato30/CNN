@@ -1,1 +1,3 @@
 sqsub -n 1 -r 5d -o ./out/if_16Jan.out --mpp 20G python if_16Jan.py
+sqsub -n 1 -r 5d -o ./out/if_16Feb.out --mpp 20G python if_16Feb.py
+sqsub -n 1 -r 5d -o ./out/if_16Mar.out --mpp 20G python if_16Mar.py
