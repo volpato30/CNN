@@ -76,19 +76,19 @@ class TestAlgo(PairAlgoWrapper):
                 # only long when position is 0 or -1
                 if pos <= 0:
                     self.long_y(y_qty=1)
+                    self.last_long_res = long_res
 
             # short when test short_res > roll.mean+sd_coef*roll.sd
             elif self.short_roll.test_sigma(short_res, self.sd_coef):
                  # only short when position is 0 or 1
                 if pos >= 0:
                     self.short_y(y_qty=1)
+                    self.last_short_res = short_res
             else:
                 pass
-
         # update rolling
         self.long_roll.add(long_res)
         self.short_roll.add(short_res)
-
 
 pair = ['cs1505', 'cs1509']
 date_list = get_trade_day(pair)
@@ -112,7 +112,7 @@ price_diff = get_price_diff(pair)
 price_diff_std = np.nanstd(price_diff)
 rolling_list = range(1000,10000,2000)
 sd_coef_list = np.arange(2,8)
-stop_win_list = price_diff_std * np.arange(0.3, 3, 0.3)
+stop_win_list = price_diff_std * np.arange(0.5, 3.5, 0.5)
 final_profit = []
 for r in rolling_list :
     for sd in sd_coef_list :
@@ -126,7 +126,7 @@ for r in rolling_list :
             print("rolling {}, sd_coef {}, stop_win {}, backtest took {:.3f}s, score is {:.3f}".format(r, sd, sw, time.time() - start_time, score))
 pars = list(itertools.product(rolling_list, sd_coef_list, stop_win_list))
 result = pd.DataFrame({"rolling": [p[0] for p in pars],
-                       "sd_coef": [p[2] for p in pars],
-                       "stop_win": [p[3] for p in pars],
+                       "sd_coef": [p[1] for p in pars],
+                       "stop_win": [p[2] for p in pars],
                        "PNL": [float(f) for f in final_profit]})
 pickle.dump(result, open( "grid_search_one_roll_cs.p", "wb" ) )
