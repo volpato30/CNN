@@ -70,7 +70,7 @@ class TestAlgo(PairAlgoWrapper):
     # called when algo param is set
     def param_updated(self):
         # make sure parent updates its param
-        super(MyAlgo, self).param_updated()
+        super(TestAlgo, self).param_updated()
         # create rolling
         self.sd_coef = self.param['sd_coef']
         self.block = self.param['block']
