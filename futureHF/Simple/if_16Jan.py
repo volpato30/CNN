@@ -103,4 +103,4 @@ pars = list(itertools.product(rolling_list, sd_coef_list))
 result = pd.DataFrame({"rolling": [p[0] for p in pars],
                        "sd_coef": [p[1] for p in pars],
                        "PNL": [float(f) for f in final_profit]})
-pickle.dump(result, open( "if_Jan.p", "wb" ))
+pickle.dump(result, open( "if_16Jan.p", "wb" ))
