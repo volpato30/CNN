@@ -87,8 +87,8 @@ settings = { 'date': date_list,
              'tickset': 'top',
              'algo': algo}
 runner = PairRunner(settings)
-rolling_list = range(500,1500,200)
-sd_coef_list = np.arange(1, 3, 0.2)
+rolling_list = range(500,5000,500)
+sd_coef_list = np.arange(1, 5, 0.5)
 final_profit = []
 for r in rolling_list :
     for sd in sd_coef_list :

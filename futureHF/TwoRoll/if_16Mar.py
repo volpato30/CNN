@@ -115,8 +115,8 @@ class TestAlgo(PairAlgoWrapper):
     def on_dayend(self, date, info_x, info_y):
         pass
 
-pair = ['if1602', 'if1603']
-date_list = [str(x).split(' ')[0] for x in pd.date_range('2016-01-01','2016-02-10').tolist()]
+pair = ['if1604', 'if1605']
+date_list = [str(x).split(' ')[0] for x in pd.date_range('2016-03-01','2016-03-31').tolist()]
 algo = { 'class': TestAlgo }
 algo['param'] = {'x': pair[0],
                  'y': pair[1],
@@ -151,4 +151,4 @@ result = pd.DataFrame({"rolling": [p[0] for p in pars],
                        "rolling_sigma": [p[1] for p in pars],
                        "sd_coef": [p[2] for p in pars],
                        "PNL": [float(f) for f in final_profit]})
-pickle.dump(result, open( "if_16Jan.p", "wb" ))
+pickle.dump(result, open( "if_16Mar.p", "wb" ))
