@@ -103,7 +103,8 @@ for date in date_list:
         pnl = np.concatenate([pnl,pnl[-1] + temp])
         account_history[date] = account
         result[date] = temp[-1]
-
+print 'final result'
+print pnl[-1]
 pickle.dump(pnl, open( "/work/rqiao/backtest_result/pnl.p", "wb" ))
 pickle.dump(result, open( "/work/rqiao/backtest_result/result.p", "wb" ))
 pickle.dump(account_history, open( "/work/rqiao/backtest_result/account_history.p", "wb" ))

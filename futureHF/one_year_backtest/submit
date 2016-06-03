@@ -1,0 +1,1 @@
+sqsub -n 1 -r 5d -o one_year_backtest.out --mpp 100G python one_year_backtest.py
