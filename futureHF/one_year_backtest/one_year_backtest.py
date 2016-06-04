@@ -86,12 +86,12 @@ def back_test(pair, date):
     account = runner.account
     return account
 
-date_list = [str(x).split(' ')[0] for x in pd.date_range('2015-01-01','2016-03-01').tolist()]
+date_list = [str(x).split(' ')[0] for x in pd.date_range('2015-05-01','2016-03-31').tolist()]
 result = {}
 account_history = {}
 pnl = np.zeros(1)
 for date in date_list:
-    date_pair = get_best_pair(date)
+    date_pair = get_best_pair(date,'ic')
     if type(date_pair) != tuple:
         continue
     else:
@@ -105,6 +105,6 @@ for date in date_list:
         result[date] = temp[-1]
 print 'final result'
 print pnl[-1]
-pickle.dump(pnl, open( "/work/rqiao/backtest_result/pnl.p", "wb" ))
-pickle.dump(result, open( "/work/rqiao/backtest_result/result.p", "wb" ))
-pickle.dump(account_history, open( "/work/rqiao/backtest_result/account_history.p", "wb" ))
+pickle.dump(pnl, open( "/work/rqiao/backtest_result/ic_pnl.p", "wb" ))
+pickle.dump(result, open( "/work/rqiao/backtest_result/ic_result.p", "wb" ))
+pickle.dump(account_history, open( "/work/rqiao/backtest_result/ic_account_history.p", "wb" ))
