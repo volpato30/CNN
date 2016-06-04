@@ -110,7 +110,7 @@ def run_simulation(param, date_list):
     return total_pnl, total_order
 
 roll_list = np.arange(500, 4100, 500)
-sd_list = np.arange(2, 4.1, 0.2)
+sd_list = np.arange(1, 4.1, 0.2)
 pars = list(itertools.product(roll_list, sd_list))
 date_list = [str(x).split(' ')[0] for x in pd.date_range('2016-01-01','2016-03-31').tolist()]
 num_cores = 32
