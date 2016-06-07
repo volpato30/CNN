@@ -121,7 +121,7 @@ def run_based_on_pre(date_list):
     history = account.history.to_dataframe(account.items)
     return float(history.pnl.tail(1)), len(orders)
 
-def simul_run(pre_days = 3)
+def simul_run(pre_days = 3):
     temp = best_param(Date_list[:pre_days])
     total_pnl = float(temp.PNL)
     total_num_trades = float(temp.num_trades)
