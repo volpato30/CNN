@@ -98,7 +98,8 @@ def best_param(date_list):
                             "sd_coef": [p[1] for p in pars],
                             "PNL": [i for i, v in results],
                             "num_trades": [v for i, v in results]})
-    return result.sort_values(by='PNL',ascending= False)[:1]
+    index = np.asarray(result.PNL).argmax()
+    return result[index:index+1]
 
 def run_based_on_pre(date_list):
     temp = best_param(date_list[:-1])
