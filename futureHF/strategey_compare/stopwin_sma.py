@@ -11,6 +11,7 @@ import datetime
 import pandas as pd
 import numpy as np
 import itertools
+import pickle
 DATA_PATH = '/work/rqiao/HFdata/dockfuture'
 
 class Autoregressive(object):

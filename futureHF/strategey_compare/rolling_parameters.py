@@ -14,6 +14,7 @@ from mewp.util.futures import get_day_db_path
 from mewp.reader.futuresqlite import SqliteReaderDce, SqliteReaderL1
 from sqlite3 import OperationalError
 from my_utils import get_trade_day
+import pickle
 DATA_PATH = '/work/rqiao/HFdata/dockfuture'
 
 class TestAlgo(PairAlgoWrapper):
