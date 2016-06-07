@@ -69,6 +69,13 @@ rolling = np.arange(1000, 9000, 1000)
 Date_list = get_trade_day(pair)
 pars = list(itertools.product(rolling, sd_coef))
 
+def run_simulation(p,runner):
+    runner.run(algo_param={'alpha': p[0], 'stop_win': p[1]})
+    account = runner.account
+    orders = account.orders.to_dataframe()
+    history = account.history.to_dataframe(account.items)
+    return float(history.pnl.tail(1)), len(orders)
+
 def best_param(date_list):
     score = []
     num_trades = []
@@ -85,15 +92,8 @@ def best_param(date_list):
                 'tickset': 'top',
                 'algo': algo}
     runner = PairRunner(settings)
-    def run_simulation(p):
-        runner.run(algo_param={'alpha': p[0], 'stop_win': p[1]})
-        account = runner.account
-        orders = account.orders.to_dataframe()
-        history = account.history.to_dataframe(account.items)
-        return float(history.pnl.tail(1)), len(orders)
-
     num_cores = 32
-    results = Parallel(n_jobs=num_cores)(delayed(run_simulation)(p) for p in pars)
+    results = Parallel(n_jobs=num_cores)(delayed(run_simulation)(p, runner) for p in pars)
     result = pd.DataFrame({ "rolling": [p[0] for p in pars],
                             "sd_coef": [p[1] for p in pars],
                             "PNL": [i for i, v in results],
