@@ -133,5 +133,17 @@ def simul_run(pre_days = 3):
         total_num_trades += temp_num_orders
     print 'use parameters from previous {} days, total pnl : {}, \
         total num_trades: {}'.format(pre_days, total_pnl, total_num_trades)
+    return total_pnl, total_num_trades
 
-simul_run(1)
+
+pnl = []
+num = []
+for i in range(1,11,1):
+    t1, t2 = simul_run(i)
+    pnl.append(t1)
+    num.append(t2)
+
+result = pd.DataFrame({ "pre_days": [i for i in range(1,11,1) ],
+                        "PNL": [i for i in pnl],
+                        "num_trades": [v for v in num]})
+pickle.dump(result, open('rolling_param.p','wb'))
