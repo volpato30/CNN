@@ -123,7 +123,7 @@ num_cores = 32
 results = Parallel(n_jobs=num_cores)(delayed(run_simulation)(p) for p in pars)
 result = pd.DataFrame({"rolling": [p[0] for p in pars],
                        "sd_coef": [p[1] for p in pars],
-                       "guard_coef": [p[2] for p in pars]
+                       "guard_coef": [p[2] for p in pars],
                        'stop_win': [p[3] for p in pars],
                        "PNL": [i for i, v in results],
                        "num_trades": [v for i, v in results]})
