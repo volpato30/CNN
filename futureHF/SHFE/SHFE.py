@@ -174,5 +174,4 @@ for product in product_list:
                            "win_ratio": [r.get_win_ratio() for r in results],
                            "PNL": [list(r.get_pnl()['pnl'])[-1] for r in results],
                            "num_orders": [sum(r.get_daily_order_count()['order_count']) for r in results]})
-
     submit.to_csv('./out/' + product + '_' + start_date + '_' + end_date + '_naive.csv')
