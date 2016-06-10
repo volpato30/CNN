@@ -64,9 +64,16 @@ class TestAlgo(PairAlgoWrapper):
         self.short_roll = SimpleMoving(size=self.param['rolling'])
 
     def on_dayend(self, date, info_x, info_y):
-        print '{} settle price: x {}, y {}. PNL is {}'.format(
-                date, info_x['SettlePrice'], info_y['SettlePrice'],
-                self.account.get_pnl())
+        pos = self.position_y()
+        # stop short position
+        if pos == -1:
+            self.long_y(y_qty = 1)
+            return
+
+        # stop long position
+        if pos == 1:
+            self.short_y(y_qty = 1)
+            return
 
     def on_tick(self, multiple, contract, info):
         # skip if price_table doesnt have both, TODO fix this bug internally
