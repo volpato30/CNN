@@ -124,7 +124,7 @@ def run_simulation(param, date_list):
     total_pnl = 0
     total_order = 0
     for date in date_list:
-        get_best_pair(date,market, 'cu')
+        date_pair = get_best_pair(date,market, 'cu')
         if type(date_pair) != tuple:
             continue
         else:
@@ -134,10 +134,10 @@ def run_simulation(param, date_list):
     return total_pnl, total_order
 
 date_list = [str(x).split(' ')[0] for x in pd.date_range('2015-01-01','2016-03-31').tolist()]
-roll_list = np.arange(500, 4100, 500)
+roll_list = np.arange(1000, 8100, 1000)
 sd_list = np.arange(1, 4.1, 0.2)
 pars = list(itertools.product(roll_list, sd_list))
-num_cores = 32
+num_cores = 20
 results = Parallel(n_jobs=num_cores)(delayed(run_simulation)(param, date_list) for param in pars)
 result = pd.DataFrame({"rolling": [p[0] for p in pars],
                        "sd_coef": [p[1] for p in pars],
