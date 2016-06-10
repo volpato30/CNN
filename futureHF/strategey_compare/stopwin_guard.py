@@ -50,13 +50,13 @@ class TestAlgo(PairAlgoWrapper):
         pos = self.position_y()
 
         if pos == -1:
-            if long_res + self.last_short_res >= self.stop_win * self.min_ticksize:
+            if long_res + self.last_short_res >= max(self.stop_win, 2*self.long_roll.sd) * self.min_ticksize:
                 self.long_y(y_qty = 1)
                 return
 
         # stop long position
         if pos == 1:
-            if short_res + self.last_long_res >= self.stop_win * self.min_ticksize:
+            if short_res + self.last_long_res >= max(self.stop_win, 2*self.short_roll.sd) * self.min_ticksize:
                 self.short_y(y_qty = 1)
                 return
 
@@ -109,7 +109,7 @@ runner = PairRunner(settings)
 rolling_list = range(500,6000,500)
 sd_list = range(2,8,1)
 guard_list = range(0.2,2,0.2)
-stop_win_list = np.arange(0.3,3,0.3)
+stop_win_list = np.arange(0.5,6.5,0.5)
 final_profit = []
 num_trades = []
 pars = list(itertools.product(rolling_list, sd_list, guard_list, stop_win_list))
