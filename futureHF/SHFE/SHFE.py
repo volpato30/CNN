@@ -158,7 +158,7 @@ for product in product_list:
     rolling_list = range(1000,5000,1000)
     sd_coef_list = np.arange(2,6,1)
     guard_list = np.arange(0.5,2,0.5)
-    stop_win_list = np.arange(1,6,1)
+    stop_win_list = np.arange(0.2,2,0.4)
     pars = list(itertools.product(rolling_list, sd_coef_list, guard_list, stop_win_list))
     def run_simulation(p):
         runner.run(algo_param={'rolling': p[0], 'sd_coef': p[1], 'guard_coef': p[2], 'stop_win': p[3]})
