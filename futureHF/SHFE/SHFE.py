@@ -164,7 +164,7 @@ for product in product_list:
         runner.run(algo_param={'rolling': p[0], 'sd_coef': p[1], 'guard_coef': p[2], 'stop_win': p[3]})
         report = Report(runner)
         return report
-    num_cores = 32
+    num_cores = 8
     results = Parallel(n_jobs=num_cores)(delayed(run_simulation)(p) for p in pars)
     submit = pd.DataFrame({"rolling": [p[0] for p in pars],
                            "sd_coef": [p[1] for p in pars],
