@@ -148,6 +148,7 @@ for product in product_list:
                      'sd_coef': 6.0,
                      'guard_coef': 1,
                      'stop_win': 1,
+                     'bucket_size': 500,
                      'block': 100}
     settings = { 'date': date_list,
                 'path': DATA_PATH,
