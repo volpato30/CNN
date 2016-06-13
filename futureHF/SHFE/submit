@@ -1,1 +1,1 @@
-sqsub -n 8 -q threaded -r 7d -o ./out/SHFE.out --mpp 250G python SHFE.py
+sqsub -n 20 -q threaded -r 7d -o ./out/SHFE.out --mpp 250G python SHFE.py

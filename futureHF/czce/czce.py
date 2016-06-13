@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 import itertools
 import os
 DATA_PATH = '/work/rqiao/HFdata/dockfuture'
-market = 'shfe'
+market = 'czce'
 
 def get_contract_list(market, contract):
     return os.listdir(DATA_PATH + '/' + market + '/' + contract)

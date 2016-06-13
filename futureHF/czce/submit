@@ -1,0 +1,1 @@
+sqsub -n 20 -q threaded -r 7d -o ./out/czce.out --mpp 250G python czce.py
