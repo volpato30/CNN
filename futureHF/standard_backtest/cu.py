@@ -283,7 +283,11 @@ def run_simulation(param, date_list, if_param):
             continue
         else:
             runner = back_test(date_pair, date, param, if_param)
-            report = Report(runner)
+            try:
+                report = Report(runner)
+            except IndexError:
+                print 'WTF? {} has IndexError'.format(date)
+                continue
             report.print_report(to_file=False, to_screen=False, to_master=master)
             order_win_list.append(runner._algo.tracker.order_winning_ratio())
             temp = runner._algo.tracker.analyze_all_waiting()
