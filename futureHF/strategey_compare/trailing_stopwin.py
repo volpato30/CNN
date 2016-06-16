@@ -212,7 +212,7 @@ def run_simulation(p):
         report.get_avg_max_draw_down(), report.get_max_max_draw_down()[0], \
         runner._algo.tracker.order_winning_ratio(), runner._algo.tracker.analyze_all_waiting()[0],\
         runner._algo.tracker.analyze_all_profit()[0], runner._algo.tracker.analyze_all_profit()[2]
-num_cores = 32
+num_cores = 20
 results = Parallel(n_jobs=num_cores)(delayed(run_simulation)(p) for p in pars)
 result = pd.DataFrame({"rolling": [p[0] for p in pars],
                        "bollinger": [p[1] for p in pars],
