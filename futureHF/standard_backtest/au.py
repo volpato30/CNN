@@ -303,9 +303,14 @@ def run_simulation(param, date_list, if_param):
     order_profit_list = np.asarray(order_profit_list)
     order_waiting_list = np.asarray(order_waiting_list)
     daily_num_order= np.asarray(daily_num_order)
-    order_win = sum(order_win_list * daily_num_order/daily_num_order.sum())
-    order_waiting = sum(order_waiting_list * daily_num_order/daily_num_order.sum())
-    order_profit = sum(order_profit_list * daily_num_order/daily_num_order.sum())
+    if daily_num_order.sum() < 1:
+        order_win = -1
+        order_waiting = -1
+        order_profit = -1
+    else:
+        order_win = sum(order_win_list * daily_num_order/daily_num_order.sum())
+        order_waiting = sum(order_waiting_list * daily_num_order/daily_num_order.sum())
+        order_profit = sum(order_profit_list * daily_num_order/daily_num_order.sum())
 
     return final_pnl, final_return, sharpe_ratio, win_ratio, max_draw_down,\
         avg_draw_down, num_orders, order_win, order_waiting, order_profit

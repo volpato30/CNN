@@ -3,3 +3,4 @@ sqsub -n 32 -q threaded -r 5d -o ./out/stopwin_ema.out --mpp 200G python stopwin
 sqsub -n 32 -q threaded -r 5d -o ./out/rolling_parameters.out --mpp 200G python rolling_parameters.py
 sqsub -n 32 -q threaded -r 5d -o ./out/simple.out --mpp 200G python simple.py
 sqsub -n 32 -q threaded -r 5d -o ./out/stopwin_guard.out --mpp 200G python stopwin_guard.py
+sqsub -n 32 -q threaded -r 5d -o ./out/trailing_stopwin.out --mpp 200G python trailing_stopwin.py
