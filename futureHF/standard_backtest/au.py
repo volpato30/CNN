@@ -278,7 +278,7 @@ def run_simulation(param, date_list, if_param):
     order_profit_list = []
     master = MasterReport()
     for date in date_list:
-        date_pair = get_best_pair(date,market, 'cu')
+        date_pair = get_best_pair(date,market, 'au')
         if type(date_pair) != tuple:
             continue
         else:
@@ -317,7 +317,7 @@ if_pars = list(itertools.product(if_stop_win_list, if_ema, if_consider_spread))
 date_list = [str(x).split(' ')[0] for x in pd.date_range('2016-01-01','2016-03-31').tolist()]
 roll_list = np.arange(1000, 4100, 1000)
 sd_list = np.arange(1, 4.1, 0.5)
-num_cores = 32
+num_cores = 20
 for if_param in if_pars:
     if if_param[0]:
         stop_win_list = np.arange(2,11)
@@ -344,5 +344,5 @@ for if_param in if_pars:
                         "order_win": [i[7] for i in results],
                         "order_waiting": [i[8] for i in results],
                         "order_profit": [i[9] for i in results]})
-    result.to_csv('./out/cu/' + 'cu_standard' + '_{}_{}_{}'.format(if_param[0],\
+    result.to_csv('./out/au/' + 'au_standard' + '_{}_{}_{}'.format(if_param[0],\
         if_param[1], if_param[2]) + '.csv')
