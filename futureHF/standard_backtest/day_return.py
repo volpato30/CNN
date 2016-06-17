@@ -297,7 +297,7 @@ for date in date_list:
     if type(date_pair) != tuple:
         continue
     else:
-        trade_day_list.append(day)
+        trade_day_list.append(date)
 
 pars = list(itertools.product(roll_list, sd_list, stop_win_list))
 results = Parallel(n_jobs=num_cores)(delayed(run_simulation)(param,\
