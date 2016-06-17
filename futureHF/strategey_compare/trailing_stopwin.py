@@ -208,10 +208,18 @@ def run_simulation(p):
     runner.run(algo_param={'rolling': p[0], 'bollinger': p[1], 'stop_win': p[2]})
     report = Report(runner)
     runner._algo.tracker.order_winning_ratio()
-    return report.get_final_pnl(), report.get_final_return(), report.get_sharpie_ratio(),\
-        report.get_avg_max_draw_down(), report.get_max_max_draw_down()[0], \
-        runner._algo.tracker.order_winning_ratio(), runner._algo.tracker.analyze_all_waiting()[0],\
-        runner._algo.tracker.analyze_all_profit()[0], runner._algo.tracker.analyze_all_profit()[2]
+    pnl = float(report.get_final_pnl())
+    final_return = float(report.get_final_return())
+    sharpe_ratio = float(report.get_sharpie_ratio())
+    avg_draw_down = float(report.get_avg_max_draw_down())
+    max_draw_down = float(report.get_max_max_draw_down()[0])
+    order_winning_ratio = float(runner._algo.tracker.order_winning_ratio())
+    waiting_time = float(runner._algo.tracker.analyze_all_waiting()[0])
+    avg_profit = float(runner._algo.tracker.analyze_all_profit()[0])
+    num_orders = int(runner._algo.tracker.analyze_all_profit()[2])
+
+    return pnl, final_return, sharpe_ratio, avg_draw_down, max_draw_down, \
+        order_winning_ratio, waiting_time, avg_profit, num_orders
 num_cores = 20
 results = Parallel(n_jobs=num_cores)(delayed(run_simulation)(p) for p in pars)
 result = pd.DataFrame({"rolling": [p[0] for p in pars],
