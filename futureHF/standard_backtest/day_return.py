@@ -254,9 +254,9 @@ def back_test(pair, date, param):
                      'a': 1,
                      'b': 0,
                      'rolling': param[0],
-                     'alpha': param[1],
-                     'bollinger': param[2],
-                     'stop_win': param[3],
+                     'alpha': -1,
+                     'bollinger': param[1],
+                     'stop_win': param[2],
                      'block': 100,
 
                      'if_stop_win': True,
