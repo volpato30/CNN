@@ -4,3 +4,4 @@ sqsub -n 20 -q threaded -r 7d -o ./out/zn.out --mpp 250G python zn.py
 sqsub -n 20 -q threaded -r 7d -o ./out/pb.out --mpp 250G python pb.py
 sqsub -n 20 -q threaded -r 7d -o ./out/al.out --mpp 250G python al.py
 sqsub -n 20 -q threaded -r 7d -o ./out/ru.out --mpp 250G python ru.py
+sqsub -n 20 -q threaded -r 7d -o ./out/day_return.out --mpp 250G python day_return.py
