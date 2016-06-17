@@ -305,4 +305,5 @@ results = Parallel(n_jobs=num_cores)(delayed(run_simulation)(param,\
 keys = ['roll:{}_sd:{}_stopwin:{}'.format(*p) for p in pars]
 dictionary = dict(zip(keys, results))
 result = pd.DataFrame(dictionary)
+result.index = trade_day_list
 result.to_csv('day_return.csv')
