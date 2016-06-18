@@ -17,7 +17,7 @@ import pandas as pd
 import itertools
 import os
 DATA_PATH = '/work/rqiao/HFdata/dockfuture'
-market = 'shfe'
+market = 'czce'
 
 def get_contract_list(market, contract):
     return os.listdir(DATA_PATH + '/' + market + '/' + contract)
@@ -254,6 +254,7 @@ def back_test(pair, date, param):
                      'bollinger': param[1],
                      'stop_win': param[2],
                      'block': 100,
+                     'bucket_size': 500,
 
                      'if_stop_win': True,
                      'if_ema': False,
@@ -321,7 +322,7 @@ date_list = [str(x).split(' ')[0] for x in pd.date_range('2016-01-01','2016-03-3
 roll_list = np.arange(1000, 4100, 1000)
 sd_list = np.arange(1, 4.1, 0.5)
 stop_win_list = np.arange(2,11)
-num_cores = 20
+num_cores = 32
 pars = list(itertools.product(roll_list, sd_list, stop_win_list))
 
 ## Loop throgh all products in the market and find the best pair in the first day
