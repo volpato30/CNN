@@ -326,7 +326,7 @@ pars = list(itertools.product(roll_list, sd_list, stop_win_list))
 ## Loop throgh all products in the market and find the best pair in the first day
 for product in product_list:
     results = Parallel(n_jobs=num_cores)(delayed(run_simulation)(param,\
-        date_list, products) for param in pars)
+        date_list, product) for param in pars)
     submit = pd.DataFrame({"rolling": [p[0] for p in pars],
                             "bollinger": [p[1] for p in pars],
                             "stop_win": [p[2] for p in pars],
