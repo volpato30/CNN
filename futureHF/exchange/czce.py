@@ -52,6 +52,22 @@ def get_best_pair(date, market, contract):
     second_max_idx = np.argmax(score)
     return (cont_list[max_idx], cont_list[second_max_idx])
 
+class Autoregressive(object):
+    ## Constructor
+    # @param alpha for ema
+    def __init__(self, alpha):
+        self.alpha = alpha
+
+        # computed
+        self.mean = 0
+
+    ## add a new observation, and refresh
+    def add(self, observe):
+        if (self.mean == 0):
+            self.mean = observe
+        else:
+            self.mean = self.mean + self.alpha * (observe - self.mean)
+
 ## Simple moving average pair trading
 # Max position within 1
 class StopWinAlgo(PairAlgoWrapper):
