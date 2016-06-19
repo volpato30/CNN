@@ -17,7 +17,7 @@ import pandas as pd
 import itertools
 import os
 DATA_PATH = '/work/rqiao/HFdata/dockfuture'
-market = 'czce'
+market = 'dce'
 
 def get_contract_list(market, contract):
     return os.listdir(DATA_PATH + '/' + market + '/' + contract)

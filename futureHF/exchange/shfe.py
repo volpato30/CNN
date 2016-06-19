@@ -307,7 +307,13 @@ def run_simulation(param, date_list, product):
             order_waiting_list.append(temp[0])
             daily_num_order.append(temp[2])
             order_profit_list.append(runner._algo.tracker.analyze_all_profit()[0])
-    [overall, days] = master.print_report(to_file=False, print_days=True)
+    try:
+        [overall, days] = master.print_report(to_file=False, print_days=False)
+    except TypeError as msg:
+        if inst.args[0] == "'NoneType' object has no attribute '__getitem__'":
+            return ('NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA')
+        else:
+            raise Exception("god knows what happens")
     final_pnl = float(overall.final_pnl)
     final_return = float(overall.final_return)
     sharpe_ratio = float(overall.sharpe_ratio)
