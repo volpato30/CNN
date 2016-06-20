@@ -310,7 +310,7 @@ def run_simulation(param, date_list, product):
             order_profit_list.append(runner._algo.tracker.analyze_all_profit()[0])
     try:
         [overall, days] = master.print_report(to_file=False, print_days=False)
-    except TypeError as msg:
+    except TypeError as inst:
         if inst.args[0] == "'NoneType' object has no attribute '__getitem__'":
             return ('NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA')
         else:
