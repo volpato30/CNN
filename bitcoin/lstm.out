@@ -1,9 +1,0 @@
-Using gpu device 0: Tesla K20m (CNMeM is disabled, CuDNN not available)
-/home/rqiao/Theano/theano/tensor/signal/downsample.py:5: UserWarning: downsample module has been moved to the pool module.
-  warnings.warn("downsample module has been moved to the pool module.")
-INFO (theano.gof.compilelock): Waiting for existing lock by process '25548' (I am process '28553')
-INFO (theano.gof.compilelock): To manually release the lock, delete /home/rqiao/.theano/compiledir_Linux-2.6-el6.x86_64-x86_64-with-centos-6.6-Final-x86_64-2.7.5-64/lock_dir
-INFO (theano.gof.compilelock): Waiting for existing lock by process '25548' (I am process '28553')
-INFO (theano.gof.compilelock): To manually release the lock, delete /home/rqiao/.theano/compiledir_Linux-2.6-el6.x86_64-x86_64-with-centos-6.6-Final-x86_64-2.7.5-64/lock_dir
-INFO (theano.gof.compilelock): Waiting for existing lock by process '25548' (I am process '28553')
-INFO (theano.gof.compilelock): To manually release the lock, delete /home/rqiao/.theano/compiledir_Linux-2.6-el6.x86_64-x86_64-with-centos-6.6-Final-x86_64-2.7.5-64/lock_dir

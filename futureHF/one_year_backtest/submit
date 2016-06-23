@@ -1,0 +1,6 @@
+sqsub -n 1 -r 5d -o one_year_backtest.out --mpp 100G python one_year_backtest.py
+sqsub -n 1 -r 5d -o ./out/cu_shfe.out --mpp 100G python cu_shfe.py
+sqsub -n 32 -q threaded -r 5d -o Parallel.out --mpp 200G python Parallel.py
+sqsub -n 32 -q threaded -r 5d -o if_Parallel.out --mpp 200G python if_Parallel.py
+sqsub -n 32 -q threaded -r 5d -o if_Parallel.out --mpp 200G python if_Parallel.py
+sqsub -n 20 -q threaded -r 5d -o ./out/cu_grid_search.out --mpp 200G python cu_grid_search.py

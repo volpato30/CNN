@@ -1,0 +1,3 @@
+sqsub -n 32 -q threaded -r 7d -o ./out/shfe.out --mpp 400G python shfe.py
+sqsub -n 32 -q threaded -r 7d -o ./out/czce.out --mpp 400G python czce.py
+sqsub -n 32 -q threaded -r 7d -o ./out/dce.out --mpp 400G python dce.py
