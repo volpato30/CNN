@@ -21,6 +21,10 @@ import os
 DATA_PATH = '/work/rqiao/HFdata/dockfuture'
 market = 'shfe'
 
+def get_file_size(market, contract, date):
+    statinfo = os.stat(get_day_db_path(DATA_PATH, contract, date))
+    return statinfo.st_size
+
 def get_contract_list(market, contract):
     return os.listdir(DATA_PATH + '/' + market + '/' + contract)
 
@@ -46,18 +50,7 @@ def get_best_pair(date, market, contract):
     score[max_idx] = 0
     second_max_idx = np.argmax(score)
     return (cont_list[max_idx], cont_list[second_max_idx])
-
-def get_tracker(date_list, product):
-    pair = 0
-    for date in date_list:
-        pair = get_best_pair(date,market, product)
-        if type(pair) != tuple:
-            continue
-        else:
-            break
-    return TradeAnalysis(Contract(pair[0]))
-
-#algo
+#
 class SpreadGuardAlgo(PairAlgoWrapper):
 
     # called when algo param is set
@@ -87,13 +80,8 @@ class SpreadGuardAlgo(PairAlgoWrapper):
                         'long_mean': [], 'short_mean': [],
                         'long_sd': [], 'short_sd':[]}
 
-        #tracker
-        self.tracker = self.param['tracker']
-
     # what to do on every tick
     def on_tick(self, multiple, contract, info):
-
-        self.tracker.tick_pass_by() # tell the tracker that one tick passed by
         # skip if price_table doesnt have both
         if len(self.price_table.table) < 2:
             return
@@ -134,12 +122,6 @@ class SpreadGuardAlgo(PairAlgoWrapper):
                     self.long_y(y_qty=1)
                     self.last_long_res = long_res
 
-                    #tell the tracker
-                    if pos == 0:
-                        self.tracker.open_position()
-                    else:
-                        self.tracker.close_with_exit(profit - fee)
-
             # short when test short_res > mean+bollinger*sd
             elif self.short_roll.test_sigma(short_res, self.bollinger)                      and short_res - self.short_roll.mean > fee + avg_spread:
                 # only short when position is 0 or 1
@@ -147,11 +129,6 @@ class SpreadGuardAlgo(PairAlgoWrapper):
                     self.short_y(y_qty=1)
                     self.last_short_res = short_res
 
-                    #tell the tracker
-                    if pos == 0:
-                        self.tracker.open_position()
-                    else:
-                        self.tracker.close_with_exit(profit - fee)
 
 
         # update rolling
@@ -189,7 +166,7 @@ class SpreadGuardAlgo(PairAlgoWrapper):
         self.records['long_sd'].append(long_std)
         self.records['short_sd'].append(short_std)
 
-def back_test(pair, date, param, tracker):
+def back_test(pair, date, param):
     algo = { 'class': SpreadGuardAlgo }
     algo['param'] = {'x': pair[0],
                      'y': pair[1],
@@ -198,7 +175,6 @@ def back_test(pair, date, param, tracker):
                      'rolling': param[0],
                      'bollinger': param[1],
                      'block': 100,
-                     'tracker': tracker,
                      }
     settings = { 'date': date,
                  'path': DATA_PATH,
@@ -206,82 +182,43 @@ def back_test(pair, date, param, tracker):
                  'algo': algo}
     runner = PairRunner(settings)
     runner.run()
-    return runner, algo
-#
+    account = runner.account
+    history = account.history.to_dataframe(account.items)
+    score = float(history[['pnl']].iloc[-1])
+    return score
+
 def run_simulation(param, date_list, product):
-    order_win_list = []
-    daily_num_order = []
-    order_waiting_list = []
-    order_profit_list = []
-    master = MasterReport()
-    tracker = get_tracker(date_list, product)
+    pnl_list = []
+    for date in date_list:
+        date_pair = get_best_pair(date,market, product)
+        if type(date_pair) != tuple:
+            continue
+        else:
+            pnl_list.append(back_test(date_pair, date, param))
+    return pnl_list
 
-
+date_list = [str(x).split(' ')[0] for x in pd.date_range('2015-01-01','2016-03-31').tolist()]
+roll_list = np.arange(1000, 11000, 1000)
+sd_list = np.arange(0.5, 4.1, 0.25)
+product_list = ['al', 'ag', 'au', 'cu', 'pb', 'ru', 'zn', 'ni']
+pars = list(itertools.product(roll_list, sd_list))
+num_cores = 20
+for product in product_list:
+#get trade_day_list
+    trade_day_list = []
+    second_contract_size_list = []
     for date in date_list:
         date_pair = get_best_pair(date, market, product)
         if type(date_pair) != tuple:
             continue
         else:
-            runner, _ = back_test(date_pair, date, param, tracker)
-            try:
-                report = Report(runner)
-            except IndexError:
-                print 'WTF? {} has IndexError'.format(date)
-                continue
-            report.print_report(to_file=False, to_screen=False, to_master=master)
-
-    try:
-        [overall, days] = master.print_report(to_file=False, print_days=False)
-    except TypeError as inst:
-        if inst.args[0] == "'NoneType' object has no attribute '__getitem__'":
-            return ('NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA')
-        else:
-            raise Exception("god knows what happens")
-
-    #pnls
-    final_pnl = float(overall.final_pnl)
-    final_return = float(overall.final_return)
-    sharpe_ratio = float(overall.sharpe_ratio)
-    win_ratio = float(overall.win_ratio)
-
-    #max draw down
-    daily_draw_down = np.asarray(days.max_draw_down)
-    max_draw_down = daily_draw_down.max()
-    avg_draw_down = daily_draw_down.mean()
-
-    #num orders
-    num_orders = sum(days.order_count)
-
-    #order analysis
-    order_win = tracker.order_winning_ratio()
-    order_waiting = tracker.analyze_all_waiting()[0]
-    order_profit = tracker.analyze_all_profit()[0]
-    num_rounds = tracker.analyze_all_profit()[2]
-
-    return final_pnl, final_return, sharpe_ratio, win_ratio, max_draw_down,\
-            avg_draw_down, num_orders, num_rounds, order_win, order_waiting,\
-             order_profit
-
-
-date_list = [str(x).split(' ')[0] for x in pd.date_range('2016-01-01','2016-03-31').tolist()]
-roll_list = np.arange(1000, 11000, 1000)
-sd_list = np.arange(0.5, 4.1, 0.25)
-num_cores = 20
-product = 'au'
-pars = list(itertools.product(roll_list, sd_list))
-results = Parallel(n_jobs=num_cores)(delayed(run_simulation)(param,\
-    date_list, product) for param in pars)
-result = pd.DataFrame({"rolling": [p[0] for p in pars],
-                        "bollinger": [p[1] for p in pars],
-                        "PNL": [i[0] for i in results],
-                        "return": [i[1] for i in results],
-                        "sharpe_ratio": [i[2] for i in results],
-                        "win_ratio": [i[3] for i in results],
-                        "max_draw_down": [i[4] for i in results],
-                        "average_draw_down": [i[5] for i in results],
-                        "num_orders": [i[6] for i in results],
-                        "num_rounds": [i[7] for i in results],
-                        "order_win": [i[8] for i in results],
-                        "order_waiting": [i[9] for i in results],
-                        "order_profit": [i[10] for i in results]})
-result.to_csv('./out/' + '{}_benchmark'.format(product) + '.csv')
+            trade_day_list.append(date)
+            second_contract_size_list.append(get_file_size(market, date_pair[1], date))
+    results = Parallel(n_jobs=num_cores)(delayed(run_simulation)(param,\
+        date_list) for param in pars)
+    keys = ['roll:{}_sd:{}'.format(*p) for p in pars]
+    dictionary = dict(zip(keys, results))
+    result = pd.DataFrame(dictionary)
+    result['second_contract_size'] = second_contract_size_list
+    result.index = trade_day_list
+    result.to_csv('{}_day_return.csv'.format(product))
