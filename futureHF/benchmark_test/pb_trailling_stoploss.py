@@ -292,13 +292,15 @@ def run_simulation(param, date_list, product):
 date_list = [str(x).split(' ')[0] for x in pd.date_range('2016-01-01','2016-03-31').tolist()]
 roll_list = np.arange(1000, 11000, 1000)
 sd_list = np.arange(0.5, 4.1, 0.25)
+stop_loss_list = np.arange(0.5, 4.1, 0.25)
 num_cores = 20
 product = 'pb'
-pars = list(itertools.product(roll_list, sd_list))
+pars = list(itertools.product(roll_list, sd_list, stop_loss_list))
 results = Parallel(n_jobs=num_cores)(delayed(run_simulation)(param,\
     date_list, product) for param in pars)
-result = pd.DataFrame({"rolling": [p[0] for p in pars],
-                        "bollinger": [p[1] for p in pars],
+result = pd.DataFrame({"aaa_rolling": [p[0] for p in pars],
+                        "aaa_bollinger": [p[1] for p in pars],
+                        "aaa_stop_loss": [p[2] for p in pars],
                         "PNL": [i[0] for i in results],
                         "return": [i[1] for i in results],
                         "sharpe_ratio": [i[2] for i in results],
