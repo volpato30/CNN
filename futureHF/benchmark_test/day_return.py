@@ -216,7 +216,7 @@ for product in product_list:
             trade_day_list.append(date)
             second_contract_size_list.append(get_file_size(market, date_pair[1], date))
     results = Parallel(n_jobs=num_cores)(delayed(run_simulation)(param,\
-        date_list) for param in pars)
+        date_list, product) for param in pars)
     keys = ['roll:{}_sd:{}'.format(*p) for p in pars]
     dictionary = dict(zip(keys, results))
     result = pd.DataFrame(dictionary)
