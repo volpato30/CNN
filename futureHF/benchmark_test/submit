@@ -6,3 +6,4 @@ sqsub -n 20 -q threaded -r 7d -o ./out/al.out --mpp 250G python al.py
 sqsub -n 20 -q threaded -r 7d -o ./out/ru.out --mpp 250G python ru.py
 sqsub -n 20 -q threaded -r 7d -o ./out/ni.out --mpp 250G python ni.py
 sqsub -n 20 -q threaded -r 7d -o ./out/day_return.out --mpp 250G python day_return.py
+sqsub -n 20 -q threaded -r 7d -o ./out/pb_trailling_stoploss.out --mpp 250G python pb_trailling_stoploss.py
