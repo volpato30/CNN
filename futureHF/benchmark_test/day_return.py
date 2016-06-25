@@ -179,7 +179,8 @@ def back_test(pair, date, param):
     settings = { 'date': date,
                  'path': DATA_PATH,
                  'tickset': 'top',
-                 'algo': algo}
+                 'algo': algo,
+                 'singletick': True}
     runner = PairRunner(settings)
     runner.run()
     account = runner.account

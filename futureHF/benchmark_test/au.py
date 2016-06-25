@@ -203,7 +203,8 @@ def back_test(pair, date, param, tracker):
     settings = { 'date': date,
                  'path': DATA_PATH,
                  'tickset': 'top',
-                 'algo': algo}
+                 'algo': algo,
+                 'singletick': True}
     runner = PairRunner(settings)
     runner.run()
     return runner, algo
