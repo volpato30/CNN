@@ -294,7 +294,7 @@ sd_list = np.arange(0.5, 4.1, 0.25)
 stop_win_list = np.arange(0.5, 4.1, 0.25)
 num_cores = 20
 product = 'au'
-pars = list(itertools.product(roll_list, sd_list, stop_loss_list))
+pars = list(itertools.product(roll_list, sd_list, stop_win_list))
 results = Parallel(n_jobs=num_cores)(delayed(run_simulation)(param,\
     date_list, product) for param in pars)
 result = pd.DataFrame({ "aaa_rolling": [p[0] for p in pars],
