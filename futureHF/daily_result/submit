@@ -1,0 +1,4 @@
+sqsub -n 32 -q threaded -r 7d -o ./out/pb_OU.out --mpp 300G python pb_OU.py
+sqsub -n 32 -q threaded -r 7d -o ./out/ni_OU.out --mpp 300G python ni_OU.py
+sqsub -n 32 -q threaded -r 7d -o ./out/au_OU.out --mpp 300G python au_OU.py
+sqsub -n 32 -q threaded -r 7d -o ./out/cu_OU.out --mpp 300G python cu_OU.py

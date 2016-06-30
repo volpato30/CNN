@@ -291,11 +291,11 @@ def run_simulation(param, date_list, product):
     return pnl_list, order_win_list, order_profit_list, num_rounds_list
 
 date_list = [str(x).split(' ')[0] for x in pd.date_range('2015-01-01','2016-03-31').tolist()]
-roll_list = np.arange(500, 8500, 500)
+roll_list = np.arange(500, 5500, 500)
 sd_list = np.arange(0.5, 4.1, 0.25)
 pars = list(itertools.product(roll_list, sd_list))
 num_cores = 32
-product = 'pb'
+product = 'au'
 trade_day_list = []
 second_contract_size_list = []
 for date in date_list:

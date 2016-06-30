@@ -295,7 +295,7 @@ roll_list = np.arange(500, 8500, 500)
 sd_list = np.arange(0.5, 4.1, 0.25)
 pars = list(itertools.product(roll_list, sd_list))
 num_cores = 32
-product = 'pb'
+product = 'cu'
 trade_day_list = []
 second_contract_size_list = []
 for date in date_list:
