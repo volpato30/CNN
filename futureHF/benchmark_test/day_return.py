@@ -1,5 +1,5 @@
 from sys import path
-path.append('/work/rqiao/HFdata')
+path.append('/work/rqiao/HFdata/cython_mew-p')
 from mewp.simulate.wrapper import PairAlgoWrapper
 from mewp.simulate.runner import PairRunner
 from mewp.math.simple import SimpleMoving
@@ -83,7 +83,7 @@ class SpreadGuardAlgo(PairAlgoWrapper):
     # what to do on every tick
     def on_tick(self, multiple, contract, info):
         # skip if price_table doesnt have both
-        if len(self.price_table.table) < 2:
+        if self.price_table.get_size() < 2:
             return
 
         # get residuals and position
@@ -114,7 +114,7 @@ class SpreadGuardAlgo(PairAlgoWrapper):
 
         # open or close position
         # action only when unblocked: bock size < rolling queue size
-        if self.long_roll.queue.qsize() > self.block and trade_flag == 0:
+        if self.long_roll.get_size() > self.block and trade_flag == 0:
             # long when test long_res > mean+bollinger*sd
             if self.long_roll.test_sigma(long_res, self.bollinger)                    and long_res - self.long_roll.mean > fee + avg_spread:
                 # only long when position is 0 or -1
@@ -199,7 +199,7 @@ def run_simulation(param, date_list, product):
     return pnl_list
 
 date_list = [str(x).split(' ')[0] for x in pd.date_range('2015-01-01','2016-03-31').tolist()]
-roll_list = np.arange(1000, 11000, 1000)
+roll_list = np.arange(500, 8500, 500)
 sd_list = np.arange(0.5, 4.1, 0.25)
 product_list = ['ni']
 pars = list(itertools.product(roll_list, sd_list))
