@@ -201,7 +201,7 @@ def run_simulation(param, date_list, product):
 date_list = [str(x).split(' ')[0] for x in pd.date_range('2015-01-01','2016-03-31').tolist()]
 roll_list = np.arange(500, 8500, 500)
 sd_list = np.arange(0.5, 4.1, 0.25)
-product_list = ['ni']
+product_list = ['al','ag','au','cu','pb','ru','zn']
 pars = list(itertools.product(roll_list, sd_list))
 num_cores = 20
 for product in product_list:
