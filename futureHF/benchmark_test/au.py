@@ -203,7 +203,8 @@ def back_test(pair, date, param, tracker):
     settings = { 'date': date,
                  'path': DATA_PATH,
                  'tickset': 'top',
-                 'algo': algo}
+                 'algo': algo,
+                 'singletick': True}
     runner = PairRunner(settings)
     runner.run()
     return runner, algo
@@ -255,16 +256,18 @@ def run_simulation(param, date_list, product):
     #order analysis
     order_win = tracker.order_winning_ratio()
     order_waiting = tracker.analyze_all_waiting()[0]
+    order_waiting_median = tracker.analyze_all_waiting()[3]
     order_profit = tracker.analyze_all_profit()[0]
+    order_profit_median = tracker.analyze_all_profit()[3]
     num_rounds = tracker.analyze_all_profit()[2]
 
     return final_pnl, final_return, sharpe_ratio, win_ratio, max_draw_down,\
-            avg_draw_down, num_orders, num_rounds, order_win, order_waiting,\
-             order_profit
+        avg_draw_down, num_orders, num_rounds, order_win, order_waiting, order_waiting_median, \
+        order_profit, order_profit_median
 
 
 date_list = [str(x).split(' ')[0] for x in pd.date_range('2016-01-01','2016-03-31').tolist()]
-roll_list = np.arange(1000, 11000, 1000)
+roll_list = np.arange(500, 11000, 500)
 sd_list = np.arange(0.5, 4.1, 0.25)
 num_cores = 20
 product = 'au'
@@ -283,5 +286,7 @@ result = pd.DataFrame({"rolling": [p[0] for p in pars],
                         "num_rounds": [i[7] for i in results],
                         "order_win": [i[8] for i in results],
                         "order_waiting": [i[9] for i in results],
-                        "order_profit": [i[10] for i in results]})
+                        "order_waiting_median": [i[10] for i in results],
+                        "order_profit": [i[11] for i in results],
+                        "order_profit_median": [i[12] for i in results]})
 result.to_csv('./out/' + '{}_benchmark'.format(product) + '.csv')

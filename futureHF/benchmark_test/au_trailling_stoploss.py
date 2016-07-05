@@ -1,5 +1,5 @@
 from sys import path
-path.append('/work/rqiao/HFdata/cython_mew-p')
+path.append('/work/rqiao/HFdata')
 from mewp.simulate.wrapper import PairAlgoWrapper
 from mewp.simulate.runner import PairRunner
 from mewp.math.simple import SimpleMoving
@@ -20,10 +20,6 @@ import itertools
 import os
 DATA_PATH = '/work/rqiao/HFdata/dockfuture'
 market = 'shfe'
-
-def get_file_size(market, contract, date):
-    statinfo = os.stat(get_day_db_path(DATA_PATH, contract, date))
-    return statinfo.st_size
 
 def get_contract_list(market, contract):
     return os.listdir(DATA_PATH + '/' + market + '/' + contract)
@@ -50,13 +46,27 @@ def get_best_pair(date, market, contract):
     score[max_idx] = 0
     second_max_idx = np.argmax(score)
     return (cont_list[max_idx], cont_list[second_max_idx])
-#
-class SpreadGuardAlgo(PairAlgoWrapper):
+
+def get_tracker(date_list, product):
+    pair = 0
+    for date in date_list:
+        pair = get_best_pair(date,market, product)
+        if type(pair) != tuple:
+            continue
+        else:
+            break
+    return TradeAnalysis(Contract(pair[0]))
+
+#algo
+## pair trading with stop win and SMA
+# Max position within 1
+
+class SpreadGuardStopLossAlgo(PairAlgoWrapper):
 
     # called when algo param is set
     def param_updated(self):
         # make sure parent updates its param
-        super(SpreadGuardAlgo, self).param_updated()
+        super(SpreadGuardStopLossAlgo, self).param_updated()
 
         # algo settings
 
@@ -70,6 +80,7 @@ class SpreadGuardAlgo(PairAlgoWrapper):
 
         self.bollinger = self.param['bollinger']
         self.block = self.param['block']
+        self.stop_loss = self.param['stop_loss']
 
         #other params
         self.last_long_res = -999
@@ -80,10 +91,15 @@ class SpreadGuardAlgo(PairAlgoWrapper):
                         'long_mean': [], 'short_mean': [],
                         'long_sd': [], 'short_sd':[]}
 
+        #tracker
+        self.tracker = self.param['tracker']
+
     # what to do on every tick
     def on_tick(self, multiple, contract, info):
+
+        self.tracker.tick_pass_by() # tell the tracker that one tick passed by
         # skip if price_table doesnt have both
-        if self.price_table.get_size() < 2:
+        if len(self.price_table.table) < 2:
             return
 
         # get residuals and position
@@ -112,23 +128,53 @@ class SpreadGuardAlgo(PairAlgoWrapper):
         #fee
         fee = self.pair.get_fee()
 
+        #stop loss
+        # stop short position
+        if pos == -1:
+            if (- profit) >= max(self.min_ticksize, self.stop_loss * self.long_roll.sd, fee):
+                self.long_y(y_qty = 1)
+                self.last_long_res = long_res
+                self.tracker.close_with_stop(profit - fee)
+                trade_flag = 1
+
+        # stop long position
+        if pos == 1:
+            if (- profit) >= max(self.min_ticksize, self.stop_loss * self.short_roll.sd, fee):
+                self.short_y(y_qty = 1)
+                self.last_short_res = short_res
+                self.tracker.close_with_stop(profit - fee)
+                trade_flag = 1
+
         # open or close position
         # action only when unblocked: bock size < rolling queue size
-        if self.long_roll.get_size() > self.block and trade_flag == 0:
+        if self.long_roll.queue.qsize() > self.block and trade_flag == 0:
             # long when test long_res > mean+bollinger*sd
-            if self.long_roll.test_sigma(long_res, self.bollinger)                    and long_res - self.long_roll.mean > fee + avg_spread:
+            if self.long_roll.test_sigma(long_res, self.bollinger) \
+                   and long_res - self.long_roll.mean > fee + avg_spread:
                 # only long when position is 0 or -1
                 if pos <= 0:
                     self.long_y(y_qty=1)
                     self.last_long_res = long_res
 
+                    #tell the tracker
+                    if pos == 0:
+                        self.tracker.open_position()
+                    else:
+                        self.tracker.close_with_exit(profit - fee)
+
             # short when test short_res > mean+bollinger*sd
-            elif self.short_roll.test_sigma(short_res, self.bollinger)                      and short_res - self.short_roll.mean > fee + avg_spread:
+            elif self.short_roll.test_sigma(short_res, self.bollinger) \
+                     and short_res - self.short_roll.mean > fee + avg_spread:
                 # only short when position is 0 or 1
                 if pos >= 0:
                     self.short_y(y_qty=1)
                     self.last_short_res = short_res
 
+                    #tell the tracker
+                    if pos == 0:
+                        self.tracker.open_position()
+                    else:
+                        self.tracker.close_with_exit(profit - fee)
 
 
         # update rolling
@@ -166,16 +212,17 @@ class SpreadGuardAlgo(PairAlgoWrapper):
         self.records['long_sd'].append(long_std)
         self.records['short_sd'].append(short_std)
 
-def back_test(pair, date, param):
-    algo = { 'class': SpreadGuardAlgo }
+def back_test(pair, date, param, tracker):
+    algo = { 'class': SpreadGuardStopLossAlgo }
     algo['param'] = {'x': pair[0],
                      'y': pair[1],
                      'a': 1,
                      'b': 0,
                      'rolling': param[0],
                      'bollinger': param[1],
+                     'stop_loss': param[2],
                      'block': 100,
-                     }
+                     'tracker': tracker}
     settings = { 'date': date,
                  'path': DATA_PATH,
                  'tickset': 'top',
@@ -183,43 +230,88 @@ def back_test(pair, date, param):
                  'singletick': True}
     runner = PairRunner(settings)
     runner.run()
-    account = runner.account
-    history = account.history.to_dataframe(account.items)
-    score = float(history[['pnl']].iloc[-1])
-    return score
-
+    return runner, algo
+#
 def run_simulation(param, date_list, product):
-    pnl_list = []
-    for date in date_list:
-        date_pair = get_best_pair(date,market, product)
-        if type(date_pair) != tuple:
-            continue
-        else:
-            pnl_list.append(back_test(date_pair, date, param))
-    return pnl_list
+    order_win_list = []
+    daily_num_order = []
+    order_waiting_list = []
+    order_profit_list = []
+    master = MasterReport()
+    tracker = get_tracker(date_list, product)
 
-date_list = [str(x).split(' ')[0] for x in pd.date_range('2015-01-01','2016-03-31').tolist()]
-roll_list = np.arange(500, 8500, 500)
-sd_list = np.arange(0.5, 4.1, 0.25)
-product_list = ['ni']
-pars = list(itertools.product(roll_list, sd_list))
-num_cores = 20
-for product in product_list:
-#get trade_day_list
-    trade_day_list = []
-    second_contract_size_list = []
+
     for date in date_list:
         date_pair = get_best_pair(date, market, product)
         if type(date_pair) != tuple:
             continue
         else:
-            trade_day_list.append(date)
-            second_contract_size_list.append(get_file_size(market, date_pair[1], date))
-    results = Parallel(n_jobs=num_cores)(delayed(run_simulation)(param,\
-        date_list, product) for param in pars)
-    keys = ['roll:{}_sd:{}'.format(*p) for p in pars]
-    dictionary = dict(zip(keys, results))
-    result = pd.DataFrame(dictionary)
-    result['second_contract_size'] = second_contract_size_list
-    result.index = trade_day_list
-    result.to_csv('{}_day_return.csv'.format(product))
+            runner, _ = back_test(date_pair, date, param, tracker)
+            try:
+                report = Report(runner)
+            except IndexError:
+                print 'WTF? {} has IndexError'.format(date)
+                continue
+            report.print_report(to_file=False, to_screen=False, to_master=master)
+
+    try:
+        [overall, days] = master.print_report(to_file=False, print_days=False)
+    except TypeError as inst:
+        if inst.args[0] == "'NoneType' object has no attribute '__getitem__'":
+            return ('NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA')
+        else:
+            raise Exception("god knows what happens")
+
+    #pnls
+    final_pnl = float(overall.final_pnl)
+    final_return = float(overall.final_return)
+    sharpe_ratio = float(overall.sharpe_ratio)
+    win_ratio = float(overall.win_ratio)
+
+    #max draw down
+    daily_draw_down = np.asarray(days.max_draw_down)
+    max_draw_down = daily_draw_down.max()
+    avg_draw_down = daily_draw_down.mean()
+
+    #num orders
+    num_orders = sum(days.order_count)
+
+    #order analysis
+    order_win = tracker.order_winning_ratio()
+    order_waiting = tracker.analyze_all_waiting()[0]
+    order_waiting_median = tracker.analyze_all_waiting()[3]
+    order_profit = tracker.analyze_all_profit()[0]
+    order_profit_median = tracker.analyze_all_profit()[3]
+    num_rounds = tracker.analyze_all_profit()[2]
+
+    return final_pnl, final_return, sharpe_ratio, win_ratio, max_draw_down,\
+        avg_draw_down, num_orders, num_rounds, order_win, order_waiting, order_waiting_median, \
+        order_profit, order_profit_median
+
+
+date_list = [str(x).split(' ')[0] for x in pd.date_range('2016-01-01','2016-03-31').tolist()]
+roll_list = np.arange(1000, 11000, 1000)
+sd_list = np.arange(0.5, 4.1, 0.25)
+stop_loss_list = np.arange(0.5, 4.1, 0.25)
+num_cores = 20
+product = 'au'
+pars = list(itertools.product(roll_list, sd_list, stop_loss_list))
+results = Parallel(n_jobs=num_cores)(delayed(run_simulation)(param,\
+    date_list, product) for param in pars)
+result = pd.DataFrame({"aaa_rolling": [p[0] for p in pars],
+                        "aaa_bollinger": [p[1] for p in pars],
+                        "aaa_stop_loss": [p[2] for p in pars],
+                        "PNL": [i[0] for i in results],
+                        "return": [i[1] for i in results],
+                        "sharpe_ratio": [i[2] for i in results],
+                        "win_ratio": [i[3] for i in results],
+                        "max_draw_down": [i[4] for i in results],
+                        "average_draw_down": [i[5] for i in results],
+                        "num_orders": [i[6] for i in results],
+                        "num_rounds": [i[7] for i in results],
+                        "order_win": [i[8] for i in results],
+                        "order_waiting": [i[9] for i in results],
+                        "order_waiting_median": [i[10] for i in results],
+                        "order_profit": [i[11] for i in results],
+                        "order_profit_median": [i[12] for i in results]})
+result.to_csv('./out/' + '{}_SG_TS'.format(product) + '.csv')
