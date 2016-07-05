@@ -11,7 +11,7 @@ from mewp.reader.futuresqlite import SqliteReaderDce
 from mewp.util.futures import get_day_db_path
 from mewp.util.pair_trade_analysis import TradeAnalysis
 from mewp.data.item import Contract
-
+from my_utils import SpreadGuardAlgo
 from joblib import Parallel, delayed
 import datetime
 import numpy as np
@@ -51,123 +51,9 @@ def get_best_pair(date, market, contract):
     second_max_idx = np.argmax(score)
     return (cont_list[max_idx], cont_list[second_max_idx])
 #
-class SpreadGuardAlgo(PairAlgoWrapper):
-
-    # called when algo param is set
-    def param_updated(self):
-        # make sure parent updates its param
-        super(SpreadGuardAlgo, self).param_updated()
-
-        # algo settings
-
-        self.min_ticksize = self.pair.x.symbol.min_ticksize
-        # create rolling
-        self.long_roll = SimpleMoving(size=self.param['rolling'])
-        self.short_roll = SimpleMoving(size=self.param['rolling'])
-
-        self.spreadx_roll = SimpleMoving(size = self.param['rolling'])
-        self.spready_roll = SimpleMoving(size = self.param['rolling'])
-
-        self.bollinger = self.param['bollinger']
-        self.block = self.param['block']
-
-        #other params
-        self.last_long_res = -999
-        self.last_short_res = -999
-
-        #records
-        self.records = {'timestamp': [], 'longs': [], 'shorts': [],
-                        'long_mean': [], 'short_mean': [],
-                        'long_sd': [], 'short_sd':[]}
-
-    # what to do on every tick
-    def on_tick(self, multiple, contract, info):
-        # skip if price_table doesnt have both
-        if self.price_table.get_size() < 2:
-            return
-
-        # get residuals and position
-        long_res = self.pair.get_long_residual()
-        short_res = self.pair.get_short_residual()
-        pos = self.position_y()
-        trade_flag = 0
-
-        ## only do this when plotting is needed
-        #update record
-#       self._update_record(long_res, self.long_roll.mean, self.long_roll.sd,\
-#                           short_res, self.short_roll.mean, self.short_roll.sd)
-
-        #calculate profit for this round
-        profit = 0
-        if pos == -1:
-            profit = long_res + self.last_short_res
-        elif pos == 1:
-            profit = short_res + self.last_long_res
-
-        #two spread
-        spreadx = self.spreadx_roll.mean
-        spready = self.spready_roll.mean
-        avg_spread = (spreadx + spready)/2
-
-        #fee
-        fee = self.pair.get_fee()
-
-        # open or close position
-        # action only when unblocked: bock size < rolling queue size
-        if self.long_roll.get_size() > self.block and trade_flag == 0:
-            # long when test long_res > mean+bollinger*sd
-            if self.long_roll.test_sigma(long_res, self.bollinger)                    and long_res - self.long_roll.mean > fee + avg_spread:
-                # only long when position is 0 or -1
-                if pos <= 0:
-                    self.long_y(y_qty=1)
-                    self.last_long_res = long_res
-
-            # short when test short_res > mean+bollinger*sd
-            elif self.short_roll.test_sigma(short_res, self.bollinger)                      and short_res - self.short_roll.mean > fee + avg_spread:
-                # only short when position is 0 or 1
-                if pos >= 0:
-                    self.short_y(y_qty=1)
-                    self.last_short_res = short_res
-
-
-
-        # update rolling
-        self.long_roll.add(long_res)
-        self.short_roll.add(short_res)
-        self.spreadx_roll.add(self.pair.get_spread_x())
-        self.spready_roll.add(self.pair.get_spread_y())
-
-    def on_daystart(self, date, info_x, info_y):
-        # recreate rolling at each day start
-        self.long_roll = SimpleMoving(size=self.param['rolling'])
-        self.short_roll = SimpleMoving(size=self.param['rolling'])
-        self.spreadx_roll = SimpleMoving(size = self.param['rolling'])
-        self.spready_roll = SimpleMoving(size = self.param['rolling'])
-
-    def on_dayend(self, date, info_x, info_y):
-        #force close on day end
-        pos = self.position_y()
-        # stop short position
-        if pos == -1:
-            self.long_y(y_qty = 1)
-            return
-
-        # stop long position
-        if pos == 1:
-            self.short_y(y_qty = 1)
-            return
-
-    def _update_record(self, long_res, long_mean, long_std, short_res, short_mean, short_std):
-        self.records['timestamp'].append(Clock.timestamp)
-        self.records['longs'].append(long_res)
-        self.records['shorts'].append(short_res)
-        self.records['long_mean'].append(long_mean)
-        self.records['short_mean'].append(short_mean)
-        self.records['long_sd'].append(long_std)
-        self.records['short_sd'].append(short_std)
-
 def back_test(pair, date, param):
-    algo = { 'class': SpreadGuardAlgo }
+    tracker = TradeAnalysis(Contract(pair[0]))
+    algo = { 'class': OUAlgo }
     algo['param'] = {'x': pair[0],
                      'y': pair[1],
                      'a': 1,
@@ -175,6 +61,7 @@ def back_test(pair, date, param):
                      'rolling': param[0],
                      'bollinger': param[1],
                      'block': 100,
+                     'tracker': tracker
                      }
     settings = { 'date': date,
                  'path': DATA_PATH,
@@ -186,21 +73,31 @@ def back_test(pair, date, param):
     account = runner.account
     history = account.history.to_dataframe(account.items)
     score = float(history[['pnl']].iloc[-1])
-    return score
+    order_win = tracker.order_winning_ratio()
+    order_profit = tracker.analyze_all_profit()[0]
+    num_rounds = tracker.analyze_all_profit()[2]
+    return score, order_win, order_profit, num_rounds
 
 def run_simulation(param, date_list, product):
     pnl_list = []
+    order_win_list = []
+    order_profit_list = []
+    num_rounds_list = []
     for date in date_list:
         date_pair = get_best_pair(date,market, product)
         if type(date_pair) != tuple:
             continue
         else:
-            pnl_list.append(back_test(date_pair, date, param))
-    return pnl_list
+            result = back_test(date_pair, date, param)
+            pnl_list.append(result[0])
+            order_win_list.append(result[1])
+            order_profit_list.append(result[2])
+            num_rounds_list.append(result[3])
+    return pnl_list, order_win_list, order_profit_list, num_rounds_list
 
 date_list = [str(x).split(' ')[0] for x in pd.date_range('2015-01-01','2016-03-31').tolist()]
-roll_list = np.arange(500, 8500, 500)
-sd_list = np.arange(0.5, 4.1, 0.25)
+roll_list = np.concatenate((np.arange(200,500,100), np.arange(500, 4500, 500)))
+sd_list = np.concatenate((np.arange(0.2,0.5,0.1), np.arange(0.5, 3.1, 0.25)))
 product_list = ['al','ag','au','cu','pb','ru','zn']
 pars = list(itertools.product(roll_list, sd_list))
 num_cores = 20
