@@ -83,7 +83,7 @@ spread_list = np.concatenate((np.arange(0, 2.1, 0.25),[3,4,5]))#11 params
 
 pars = list(itertools.product(roll_list, sd_list, spread_list))
 num_cores = 20
-product = 'ni'
+product = 'al'
 trade_day_list = []
 for date in date_list:
     date_pair = get_best_pair(date, market, product)
