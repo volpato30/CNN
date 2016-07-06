@@ -17,19 +17,21 @@ import pandas as pd
 from sklearn.linear_model import LinearRegression
 from math import sqrt
 import itertools
-from joblib import Parallel, delayed
-from my_utils import SpreadGuardAlgo, get_best_pair, get_tracker
 import pickle
+from joblib import Parallel, delayed
+from my_utils import get_best_pair
+from algo.algo_constant import ConstantAlgo
 market = 'shfe'
 def back_test(pair, date, param):
     tracker = TradeAnalysis(Contract(pair[0]))
-    algo = { 'class': SpreadGuardAlgo }
+    algo = { 'class': ConstantAlgo }
     algo['param'] = {'x': pair[0],
                      'y': pair[1],
                      'a': 1,
                      'b': 0,
                      'rolling': param[0],
                      'bollinger': param[1],
+                     'const': param[2],
                      'block': 100,
                      'tracker': tracker
                      }
@@ -47,6 +49,7 @@ def back_test(pair, date, param):
     order_profit = tracker.analyze_all_profit()[0]
     num_rounds = tracker.analyze_all_profit()[2]
     return score, order_win, order_profit, num_rounds, runner
+
 #run_simulation
 def run_simulation(param, date_list, product):
     pnl_list = []
@@ -74,9 +77,11 @@ def run_simulation(param, date_list, product):
     return pnl_list, order_win_list, order_profit_list, num_rounds_list, master
 
 date_list = [str(x).split(' ')[0] for x in pd.date_range('2015-01-01','2016-03-31').tolist()]
-roll_list = np.concatenate((np.arange(200,500,100), np.arange(500, 3500, 500)))
-sd_list = np.concatenate((np.arange(0.2,0.5,0.1), np.arange(0.5, 2.6, 0.25)))
-pars = list(itertools.product(roll_list, sd_list))
+roll_list = np.concatenate((np.arange(200,500,100), np.arange(500, 3500, 500),[5000, 8000])) #11 params
+sd_list = np.concatenate((np.arange(0, 2.1, 0.25),[3,4,5]))#11 params
+spread_list = np.concatenate((np.arange(0, 2.1, 0.25),[3,4,5]))#11 params
+
+pars = list(itertools.product(roll_list, sd_list, spread_list))
 num_cores = 20
 product = 'ni'
 trade_day_list = []
@@ -89,7 +94,7 @@ for date in date_list:
 
 results = Parallel(n_jobs=num_cores)(delayed(run_simulation)(param,\
     date_list, product) for param in pars)
-keys = ['roll:{}_sd:{}'.format(*p) for p in pars]
+keys = ['roll:{}_sd:{}_spreadcoef:{}'.format(*p) for p in pars]
 pnl = [i[0] for i in results]
 order_win = [i[1] for i in results]
 order_profit = [i[2] for i in results]
